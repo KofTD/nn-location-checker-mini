@@ -3,6 +3,7 @@ from pathlib import Path
 from random import sample, shuffle
 
 import cv2
+import torch
 import torchvision
 
 from src.dataset import Dataset, Marker
@@ -64,7 +65,7 @@ class Data_loader:
         photo, marker = self._data_queue[self._queue_pos]
         self._queue_pos += 1
 
-        return (self._load_to_tensor(photo), marker)
+        return (self._load_to_tensor(photo), torch.tensor([marker.value]))
 
     @property
     def dataset(self):
