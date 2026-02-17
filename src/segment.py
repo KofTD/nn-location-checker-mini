@@ -12,8 +12,11 @@ class Segment:
     def append(self, module: torch.nn.Module):
         self._modules.append(module)
 
-    def extend(self, modules: Iterable[torch.nn.Module]):
-        self._modules.extend(modules)
+    def extend(self, modules: Iterable[torch.nn.Module] | "Segment"):
+        if isinstance(modules, Segment):
+            self._modules.extend(modules._modules)
+        else:
+            self._modules.extend(modules)
 
     def sequential(self):
         return torch.nn.Sequential(*self._modules)
