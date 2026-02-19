@@ -10,15 +10,13 @@ from src.segment import Segment
 
 
 class ConvolutionalNeuralNetwork(torch.nn.Module):
-    def __init__(self, head: Segment, tail: Segment):
+    def __init__(self, head: Segment):
         super().__init__()
 
         self.head = head.sequential()
-        self.tail = tail.sequential()
 
     def forward(self, x):
         x = self.head(x)
-        x = self.tail(x)
         return x
 
 
@@ -31,9 +29,11 @@ def main():
 
     head = alexnet_chopper.head_chop(2)
 
-    tail = Segment([torch.nn.Linear(6, 1536, True)])
+    tail = Segment([torch.nn.Dropout(p=0.5), torch.nn.Linear(256 * 6 * 6, 4096, True)])
 
-    cnn_model = ConvolutionalNeuralNetwork(head, tail)
+    head.extend(tail)
+
+    cnn_model = ConvolutionalNeuralNetwork(head)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     cnn_model = cnn_model.to(device)
 
