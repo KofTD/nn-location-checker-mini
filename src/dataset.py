@@ -1,6 +1,10 @@
 from enum import Enum
 from os import PathLike
 from pathlib import Path
+from typing import overload
+
+import cv2
+import cv2.typing as cv2t
 
 
 class Marker(Enum):
@@ -24,21 +28,66 @@ class Marker(Enum):
 class Dataset:
     def __init__(
         self,
-        path_to_dataset: str | PathLike[str] | Path,
+        images_directory: str | PathLike[str] | Path,
     ):
-        self._dataset_path = Path(path_to_dataset)
+        self._images_directory: Path = Path(images_directory)
 
-        directories = list(self._dataset_path.iterdir())
+        directories = list(self._images_directory.iterdir())
         directories.sort()
 
-        self._pool, self._category_bounds = self._load_pool(directories)
+        self._pool: list[tuple[Path, Marker]] = self._load_pool(directories)
+        self._pool_idx: int = -1
+
+    def __len__(self):
+        return len(self._pool)
+
+    @overload
+    def __getitem__(self, idx: int) -> tuple[cv2t.MatLike, Marker]: ...
+
+    @overload
+    def __getitem__(self, idx: slice) -> list[tuple[cv2t.MatLike, Marker]]: ...
+
+    def __getitem__(
+        self, idx: int | slice
+    ) -> tuple[cv2t.MatLike, Marker] | list[tuple[cv2t.MatLike, Marker]]:
+        def load_image(image_path: Path):
+            image = cv2.imread(str(image_path))
+
+            if image is None:
+                raise RuntimeError(f"Could not load an image: {image_path}")
+
+            return image
+
+        if isinstance(idx, int):
+            image_path, label = self._pool[idx]
+
+            image = load_image(image_path)
+
+            return image, label
+        else:
+            pool_slice = self._pool[idx]
+
+            result_slice: list[tuple[cv2.typing.MatLike, Marker]] = []
+            for image_path, label in pool_slice:
+                image = load_image(image_path)
+                result_slice.append((image, label))
+
+            return result_slice
+
+    def __iter__(self):
+        self._pool_idx = -1
+        return self
+
+    def __next__(self):
+        self._pool_idx += 1
+
+        return self[self._pool_idx]
 
     @staticmethod
-    def _load_pool(directories: list[Path]):
+    def _load_pool(
+        directories: list[Path],
+    ) -> list[tuple[Path, Marker]]:
         pool: list[tuple[Path, Marker]] = []
-        category_bounds: list[tuple[int, int]] = []
-
-        previous_bound_end = 0
 
         for directory in directories:
             marker_number = int(directory.name[: directory.name.find("_")])
@@ -47,14 +96,8 @@ class Dataset:
             for photo in directory.iterdir():
                 pool.append((photo, marker))
 
-            category_bounds.append((previous_bound_end, len(pool)))
-            previous_bound_end = len(pool)
-        return (pool, category_bounds)
+        return pool
 
     @property
-    def pool(self):
+    def pool(self) -> list[tuple[Path, Marker]]:
         return self._pool
-
-    @property
-    def category_bounds(self):
-        return self._category_bounds
