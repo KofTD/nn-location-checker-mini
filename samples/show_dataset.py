@@ -1,13 +1,12 @@
 from random import sample
 
-import cv2.typing as cv2t
-from cv2 import COLOR_BGR2RGB, cvtColor
+import torch
 from matplotlib import pyplot as plot
 
 from dataset import Dataset, Marker
 
 
-def show_images(dataset_picks: list[tuple[cv2t.MatLike, Marker]]):
+def show_images(dataset_picks: list[tuple[torch.Tensor, int]]):
     num_showed_imgs_x = 5
     num_showed_imgs_y = 5
 
@@ -18,10 +17,10 @@ def show_images(dataset_picks: list[tuple[cv2t.MatLike, Marker]]):
     _ = plot.setp(plot.gcf().get_axes(), xticks=[], yticks=[])
     for i, ax in enumerate(axes.flat):
         if i < len(dataset_picks):
-            img = cvtColor(dataset_picks[i][0], COLOR_BGR2RGB)
+            img = dataset_picks[i][0].int().permute(1, 2, 0).numpy()
             label_idx = dataset_picks[i][1]
 
-            label_name = label_idx.name.capitalize().replace("_", " ")
+            label_name = Marker(label_idx).name.capitalize().replace("_", " ")
 
             ax.imshow(img)
             ax.set_xlabel(label_name, fontsize=8)
