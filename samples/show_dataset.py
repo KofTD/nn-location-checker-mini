@@ -1,6 +1,9 @@
+import argparse
+from pathlib import Path
 from random import sample
 
 import torch
+import torchvision.transforms.v2 as tt2
 from matplotlib import pyplot as plot
 
 from dataset import Dataset, Marker
@@ -17,7 +20,8 @@ def show_images(dataset_picks: list[tuple[torch.Tensor, int]]):
     _ = plot.setp(plot.gcf().get_axes(), xticks=[], yticks=[])
     for i, ax in enumerate(axes.flat):
         if i < len(dataset_picks):
-            img = dataset_picks[i][0].int().permute(1, 2, 0).numpy()
+            img = dataset_picks[i][0].byte().permute(1, 2, 0).numpy()
+            print(dataset_picks[i][0])
             label_idx = dataset_picks[i][1]
 
             label_name = Marker(label_idx).name.capitalize().replace("_", " ")
@@ -29,8 +33,30 @@ def show_images(dataset_picks: list[tuple[torch.Tensor, int]]):
     plot.show()
 
 
-def main():
-    dataset = Dataset("./dataset/")
+def create_argparser() -> argparse.ArgumentParser:
+    argparser = argparse.ArgumentParser()
+
+    _ = argparser.add_argument(
+        "-d",
+        "--dataset",
+        type=Path,
+        required=True,
+        help="Path to dataset",
+    )
+    _ = argparser.add_argument(
+        "-s",
+        "--size",
+        type=int,
+        nargs=2,
+        default=(500, 500),
+        help="Size of images",
+    )
+
+    return argparser
+
+
+def main(dataset_path: Path, image_size: tuple[int, int]):
+    dataset = Dataset(dataset_path, tt2.Resize(image_size))
 
     random_25_idx = sample(range(0, len(dataset)), 25)
 
@@ -40,4 +66,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    argparser = create_argparser()
+    arguments = argparser.parse_args()
+
+    dataset: Path = arguments.dataset  # pyright: ignore[reportAny]
+    image_size: tuple[int, int] = tuple(arguments.size)  # pyright: ignore[reportAny]
+
+    main(dataset, image_size)
