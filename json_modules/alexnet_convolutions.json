@@ -1,0 +1,84 @@
+[
+  {
+    "type": "convolution",
+    "out": 64,
+    "kernel": 11,
+    "stride": 4,
+    "padding": 2
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "pool",
+    "function": "max",
+    "kernel": 3,
+    "stride": 2
+  },
+  {
+    "type": "convolution",
+    "out": 192,
+    "kernel": 5,
+    "padding": 2
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "pool",
+    "function": "max",
+    "kernel": 3,
+    "stride": 2
+  },
+  {
+    "type": "convolution",
+    "out": 384,
+    "kernel": 3,
+    "padding": 1
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "convolution",
+    "out": 256,
+    "kernel": 3,
+    "padding": 1
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "convolution",
+    "out": 256,
+    "kernel": 3,
+    "padding": 1
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "pool",
+    "function": "max",
+    "kernel": 3,
+    "stride": 2
+  },
+  {
+    "type": "adaptive_pool",
+    "function": "avg",
+    "out": [
+      6,
+      6
+    ]
+  }
+]
