@@ -21,7 +21,6 @@ def show_images(dataset_picks: list[tuple[torch.Tensor, int]]):
     for i, ax in enumerate(axes.flat):
         if i < len(dataset_picks):
             img = dataset_picks[i][0].byte().permute(1, 2, 0).numpy()
-            print(dataset_picks[i][0])
             label_idx = dataset_picks[i][1]
 
             label_name = Marker(label_idx).name.capitalize().replace("_", " ")
