@@ -137,7 +137,7 @@ class Convolution:
 
             previous_shape = new_shape
 
-        self._out_shape = previous_shape
+        self._out_shape = _compute_shape(self._modules[-1], previous_shape)
 
     def append(self, module: tnn.Module) -> None:
         if isinstance(module, tnn.Linear):
