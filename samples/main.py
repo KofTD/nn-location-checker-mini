@@ -1,5 +1,4 @@
 import logging
-import time
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from sys import path as sys_path
