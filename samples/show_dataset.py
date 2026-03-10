@@ -3,9 +3,7 @@ from pathlib import Path
 from random import sample
 from sys import path as sys_path
 
-src_directory = (
-    Path("./src/").absolute() if Path("./src/").exists() else Path("../src/").absolute()
-)
+src_directory = Path(__file__).resolve().parents[1].joinpath("src")
 sys_path.append(str(src_directory))
 
 import torch
