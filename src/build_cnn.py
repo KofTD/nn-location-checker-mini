@@ -21,5 +21,4 @@ class CNnetwork(tnn.Module):
         if len(x.shape) > 2:
             x = torch.flatten(x, 1)
         x = self._classifier(x)  # pyright: ignore[reportAny]
-        x = self._soft_max(x)  # pyright: ignore[reportAny]
-        return x
+        return self._soft_max(x)  # pyright: ignore[reportAny]

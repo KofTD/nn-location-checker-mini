@@ -42,8 +42,7 @@ def main() -> None:
 
     if isinstance(out := alexnet_part.compute_shape(TensorShape(3, 227, 227)), int):
         raise ValueError("Must be TensorShape")
-    else:
-        output = out
+    output = out
 
     alexnet_classifier = alexnet_classifier_loader.load(output)
 

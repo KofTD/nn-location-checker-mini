@@ -76,15 +76,14 @@ class Dataset(BaseDataset[tuple[torch.Tensor, int]]):
             image = load_image(image_path)
 
             return image, label.value
-        else:
-            pool_slice = self._pool[idx]
+        pool_slice = self._pool[idx]
 
-            result_slice: list[tuple[torch.Tensor, int]] = []
-            for image_path, label in pool_slice:
-                image = load_image(image_path)
-                result_slice.append((image, label.value))
+        result_slice: list[tuple[torch.Tensor, int]] = []
+        for image_path, label in pool_slice:
+            image = load_image(image_path)
+            result_slice.append((image, label.value))
 
-            return result_slice
+        return result_slice
 
     def __iter__(self) -> Self:
         self._pool_idx = -1

@@ -61,8 +61,7 @@ def _build_activation(
     function_type = dct.get("function")
     if function_type is None:
         raise ValueError("There must be activation function type")
-    else:
-        function_type = str(function_type)
+    function_type = str(function_type)
 
     inplace = bool(dct.get("inplace", False))
 
@@ -79,8 +78,7 @@ def _build_pool(
     pool_type = dct.get("function")
     if pool_type is None:
         raise ValueError("There must be pool function type")
-    else:
-        pool_type = str(pool_type)
+    pool_type = str(pool_type)
 
     kernel = dct.get("kernel")
     match kernel:
@@ -116,8 +114,7 @@ def _build_adaptive_pool(
     pool_type = dct.get("function")
     if pool_type is None:
         raise ValueError("There must be pool function type")
-    else:
-        pool_type = str(pool_type)
+    pool_type = str(pool_type)
 
     out_size = dct.get("out")
     match out_size:
@@ -186,8 +183,7 @@ def _as_module_data(
     module_type = dct.get("type")
     if module_type is None:
         raise ValueError("There must be module type")
-    else:
-        module_type = str(module_type)
+    module_type = str(module_type)
     match module_type:
         case "convolution":
             return _build_conv2d(dct)
@@ -212,7 +208,7 @@ class ModuleLoader:
         if not self._file.exists():
             raise ValueError("File does not exist")
 
-        with open(self._file, encoding="utf-8") as module_file:
+        with self._file.open(encoding="utf-8") as module_file:
             data = json.load(module_file, object_hook=_as_module_data)  # pyright: ignore[reportAny]
 
         if not isinstance(data, list):
@@ -222,7 +218,4 @@ class ModuleLoader:
             self._modules.append(record)  # pyright: ignore[reportUnknownArgumentType]
 
     def load(self, input_shape: TensorShape) -> Classifier:
-        result: Classifier | None = None
-        result = Classifier(self._modules, input_shape)
-
-        return result
+        return Classifier(self._modules, input_shape)
