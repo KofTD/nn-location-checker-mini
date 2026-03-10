@@ -92,7 +92,7 @@ def main():
     accuracy, avg_time_per_image = get_accuracy(test_loader, cnn_model, device)
     logger.info("Testing accuracy: %.4f", accuracy)
     logger.info("Average time per image: %.4f ms", avg_time_per_image)
-    logger.info("Скорость классификации: %.4f images/s", 1 / avg_time_per_image)
+    logger.info("Classification speed: %.4f images/s", 1 / avg_time_per_image)
     logger.info("End of testing")
 
 
