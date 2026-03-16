@@ -209,3 +209,4 @@ __marimo__/
 # Especially for the project
 dataset/
 logs/
+*.csv
