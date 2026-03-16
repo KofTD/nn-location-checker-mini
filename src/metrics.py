@@ -76,7 +76,7 @@ class ModelMetrics:
         label_i = label.value
         true_positives = self._confusion_matrix[label_i, label_i]
         false_positives = self._confusion_matrix[..., label_i].sum() - true_positives
-        return (
+        return float(
             0.0
             if true_positives + false_positives == 0
             else true_positives / (true_positives + false_positives)
@@ -91,14 +91,14 @@ class ModelMetrics:
         true_positives = self._confusion_matrix[label_i, label_i]
         false_negatives = self._confusion_matrix[label_i, ...].sum() - true_positives
 
-        return (
+        return float(
             0.0
             if true_positives + false_negatives == 0
             else true_positives / (true_positives + false_negatives)
         )
 
     def avg_time_per_image(self) -> Seconds:
-        return self._total_time / self._confusion_matrix.sum()
+        return float(self._total_time / self._confusion_matrix.sum())
 
     def f1_score(self, label: Marker | None = None) -> float:
         if label is None:
@@ -109,7 +109,7 @@ class ModelMetrics:
         false_positives = self._confusion_matrix[..., label_i].sum() - true_positives
         false_negatives = self._confusion_matrix[label_i, ...].sum() - true_positives
 
-        return (2 * true_positives) / (
+        return float(2 * true_positives) / float(
             2 * true_positives + false_positives + false_negatives
         )
 
