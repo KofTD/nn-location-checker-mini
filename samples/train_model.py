@@ -12,7 +12,7 @@ import torchvision.transforms.v2 as tt2
 from torch.utils.data import DataLoader
 from torchinfo import summary
 
-from dataset import Dataset
+from dataset import Dataset, Marker
 from metrics import ModelMetrics
 from training_config import TrainingConfig, load_config
 from utils import TensorShape
@@ -69,6 +69,9 @@ def main(
     network_summary = summary(config.network, verbose=0, depth=5, col_names=[])
 
     logger.info(f"\n{format_torchsummary(str(network_summary))}")
+    logger.info(f"Donor: {config.donor}")
+    logger.info(f"Segment: {config.segment_start}:{config.segment_end}")
+    logger.info(f"Classifier: {config.classifier}")
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     config.network = config.network.to(device)
@@ -76,7 +79,7 @@ def main(
     logger.info(f"Batch size: {config.batch_size}")
     logger.info(f"Number of batches: {len(train_loader)}")
     logger.info(f"Device: {device}")
-    logger.info(f"Learning rate {config.learning_rate:.4f}")
+    logger.info(f"Learning rate {config.learning_rate}")
     logger.info(f"Number of epochs: {config.epochs}")
     logger.info(f"Loss function: {config.loss_function.__class__.__name__}")
     logger.info(f"Optimizer: {config.optimizer.__class__.__name__}")
@@ -87,11 +90,11 @@ def main(
 
     logger.info("Start of testing")
     metrics = ModelMetrics.from_model(test_loader, config.network, device)
-    logger.info(f"Testing accuracy: {metrics.accuracy():.4f}")
-    logger.info(f"Average time per image: {metrics.avg_time_per_image():.4f} s")
-    logger.info(
-        f"Classification speed: {1 / metrics.avg_time_per_image():.4f} images/s"
-    )
+    logger.info(f"Accuracy: {metrics.accuracy()}")
+    logger.info(f"Macro f1 per class: {[metrics.f1_score(label) for label in Marker]}")
+    logger.info(f"Macro f1: {metrics.f1_score()}")
+    logger.info(f"Average time per image: {metrics.avg_time_per_image()} s")
+    logger.info(f"Classification speed: {1 / metrics.avg_time_per_image()} images/s")
     logger.info("End of testing")
 
 

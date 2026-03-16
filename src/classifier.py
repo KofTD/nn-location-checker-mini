@@ -29,6 +29,9 @@ class Classifier:
 
         self._out_features = previous_features
 
+    def __repr__(self) -> str:
+        return str(self._modules)
+
     def append(self, module: tnn.Module) -> None:
         if isinstance(module, tnn.Conv2d):
             raise ValueError("Convolution layers can not be in classifier")

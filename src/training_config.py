@@ -5,6 +5,7 @@ from pathlib import Path
 import torch
 
 from classification_network import ClassificationNetwork
+from classifier import Classifier
 from json_loader import ModuleLoader
 from model_segment import ModelSegment, SupportedModels
 from utils import TensorShape
@@ -12,6 +13,8 @@ from utils import TensorShape
 
 @dataclass
 class TrainingConfig:
+    donor: str
+    classifier: Classifier
     batch_size: int
     epochs: int
     network: ClassificationNetwork
@@ -44,6 +47,8 @@ def load_config(file: Path, input_shape: TensorShape) -> TrainingConfig:
     loss_fn = getattr(torch.nn, loss_p["name"])()
 
     return TrainingConfig(
+        donor=model_p["name"],
+        classifier=classifier,
         batch_size=macro_p["batch_size"],
         epochs=macro_p["epochs"],
         network=network,
