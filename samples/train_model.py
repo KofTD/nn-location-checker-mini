@@ -90,11 +90,15 @@ def main(
 
     logger.info("Start of testing")
     metrics = ModelMetrics.from_model(test_loader, config.network, device)
-    logger.info(f"Accuracy: {metrics.accuracy()}")
-    logger.info(f"Macro f1 per class: {[metrics.f1_score(label) for label in Marker]}")
-    logger.info(f"Macro f1: {metrics.f1_score()}")
-    logger.info(f"Average time per image: {metrics.avg_time_per_image()} s")
-    logger.info(f"Classification speed: {1 / metrics.avg_time_per_image()} images/s")
+    logger.info(f"Accuracy: {metrics.accuracy():.4f}")
+    logger.info(
+        f"Macro f1 per class: {[round(metrics.f1_score(label), 4) for label in Marker]}"
+    )
+    logger.info(f"Macro f1: {metrics.f1_score():.4f}")
+    logger.info(f"Average time per image: {metrics.avg_time_per_image():.4f} s")
+    logger.info(
+        f"Classification speed: {1 / metrics.avg_time_per_image():.4f} images/s"
+    )
     logger.info("End of testing")
 
 
