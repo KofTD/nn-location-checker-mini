@@ -1,122 +1,72 @@
-import time
-from typing import Self
+from dataclasses import dataclass
+from typing import ClassVar
 
 import numpy as np
 import numpy.typing as npt
-import torch
-from torch.utils.data import DataLoader
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 
-from classification_network import ClassificationNetwork
 from dataset import Marker
 
 type Seconds = float
 
 
-def _run_model(
-    data_loader: DataLoader[tuple[torch.Tensor, int]],
-    model: ClassificationNetwork,
-    device: torch.device,
-) -> tuple[npt.NDArray[np.int32], Seconds]:
-    model.eval()
-    confusion_matrix = np.zeros((len(Marker), len(Marker)), dtype=np.int32)
-    total_time = 0.0
-    with torch.no_grad():
-        for images, labels in data_loader:
-            images = images.to(device)
-            labels = labels.to(device)
-            batch_start_time = time.time()
-            outputs = model(images)
-            batch_time = time.time() - batch_start_time
-            total_time += batch_time
-            probs = torch.softmax(outputs, dim=1)
-            _, predicted = probs.max(dim=1)
-            for predict, label in zip(predicted, labels, strict=True):
-                confusion_matrix[label][predict] += 1
-
-    return confusion_matrix, total_time
-
-
+@dataclass
 class ModelMetrics:
-    def __init__(
-        self, confusion_matrix: npt.NDArray[np.int32], total_time: Seconds
-    ) -> None:
-        num_of_classes = len(Marker)
-        if confusion_matrix.shape != (num_of_classes, num_of_classes):
-            raise ValueError(
-                f"Confusion matrix must be a square matrix {len(Marker)}x{len(Marker)}"
-            )
-
-        self._confusion_matrix: npt.NDArray[np.int32] = np.zeros(
-            (num_of_classes, num_of_classes), dtype=np.int32
-        )
-
-        for i in range(num_of_classes):
-            self._confusion_matrix[i] = confusion_matrix[i]
-
-        self._total_time: Seconds = total_time
-
-    @classmethod
-    def from_model(
-        cls,
-        data_loader: DataLoader[tuple[torch.Tensor, int]],
-        model: ClassificationNetwork,
-        device: torch.device,
-    ) -> Self:
-        confusion_matrix, total_time = _run_model(data_loader, model, device)
-
-        return cls(confusion_matrix, total_time)
+    labels: npt.NDArray[np.int8]
+    predictions: npt.NDArray[np.int8]
+    total_time: Seconds
+    ALL_LABELS: ClassVar[list[int]] = [label.value for label in Marker]
 
     def accuracy(self) -> float:
-        return np.diag(self._confusion_matrix).sum() / self._confusion_matrix.sum()
+        return accuracy_score(self.labels, self.predictions)
 
     def precision(self, label: Marker | None = None) -> float:
+        result = 0.0
         if label is None:
-            precisions = [self.precision(label) for label in Marker]
-            return float(np.mean(precisions))
-        label_i = label.value
-        true_positives = self._confusion_matrix[label_i, label_i]
-        false_positives = self._confusion_matrix[..., label_i].sum() - true_positives
-        return float(
-            0.0
-            if true_positives + false_positives == 0
-            else true_positives / (true_positives + false_positives)
-        )
+            result = precision_score(
+                self.labels, self.predictions, average="macro", labels=self.ALL_LABELS
+            )
+        else:
+            result = precision_score(
+                self.labels, self.predictions, average=None, labels=self.ALL_LABELS
+            )[label.value]
+
+        return float(result)
 
     def recall(self, label: Marker | None = None) -> float:
+        result = 0.0
         if label is None:
-            recalls = [self.recall(label) for label in Marker]
-            return float(np.mean(recalls))
+            result = recall_score(
+                self.labels, self.predictions, average="macro", labels=self.ALL_LABELS
+            )
+        else:
+            result = recall_score(
+                self.labels, self.predictions, average=None, labels=self.ALL_LABELS
+            )[label.value]
 
-        label_i = label.value
-        true_positives = self._confusion_matrix[label_i, label_i]
-        false_negatives = self._confusion_matrix[label_i, ...].sum() - true_positives
+        return float(result)
 
-        return float(
-            0.0
-            if true_positives + false_negatives == 0
-            else true_positives / (true_positives + false_negatives)
-        )
-
-    def avg_time_per_image(self) -> Seconds:
-        return float(self._total_time / self._confusion_matrix.sum())
+    def avg_time_per_image(self) -> float:
+        return float(self.total_time / self.predictions.size)
 
     def f1_score(self, label: Marker | None = None) -> float:
+        result = 0.0
         if label is None:
-            f1_scores = [self.f1_score(label) for label in Marker]
-            return float(np.mean(f1_scores))
-        label_i = label.value
-        true_positives = self._confusion_matrix[label_i, label_i]
-        false_positives = self._confusion_matrix[..., label_i].sum() - true_positives
-        false_negatives = self._confusion_matrix[label_i, ...].sum() - true_positives
+            result = f1_score(
+                self.labels, self.predictions, average="macro", labels=self.ALL_LABELS
+            )
+        else:
+            result = f1_score(
+                self.labels, self.predictions, average=None, labels=self.ALL_LABELS
+            )[label.value]
 
-        return float(2 * true_positives) / float(
-            2 * true_positives + false_positives + false_negatives
-        )
+        return float(result)
 
-    @property
     def confusion_matrix(self) -> npt.NDArray[np.int32]:
-        return self._confusion_matrix
-
-    @property
-    def total_time(self) -> Seconds:
-        return self._total_time
+        return confusion_matrix(self.labels, self.predictions, labels=self.ALL_LABELS)

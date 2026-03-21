@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
   "matplotlib>=3.10.8",
   "opencv-python>=4.13.0.92",
+  "scikit-learn>=1.8.0",
   "torch>=2.10.0",
   "torchinfo>=1.8.0",
   "torchvision>=0.25.0",
