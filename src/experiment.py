@@ -1,3 +1,27 @@
+"""Experiment data model and CSV handler for parsing and serializing log output.
+
+This module provides the :class:`Experiment` dataclass, which parses structured
+log lines produced by the training pipeline and exposes results as a
+CSV-serializable object, and :class:`ExperimentCSVHandler`, a context manager
+for appending experiments to a CSV file.
+
+Intended usage::
+
+    experiment = Experiment()
+    with subprocess.Popen(
+        ...,
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+    ) as training:
+        for line in training.stderr:
+            ...
+            experiment.update(line)
+
+    with ExperimentCSVHandler("results.csv") as handler:
+        handler.writerow(experiment)
+"""
+
 import csv
 import re
 from collections.abc import Iterable, Iterator
@@ -13,6 +37,29 @@ __all__ = ["Experiment", "ExperimentCSVHandler"]
 
 @dataclass
 class Experiment:
+    """A single experiment parsed from log output.
+
+    Parses structured log lines into typed fields and supports
+    direct serialization to CSV via iteration.
+
+    Attributes:
+        donor: Identifier of the model.
+        segment: Donor's segment in ``start:end`` format.
+        classifier: Configuration of the classifier used.
+        accuracy: Classification accuracy as a string-encoded float.
+        avg_time_per_image: Mean classification time per image in seconds.
+        macro_f1: Macro-averaged F1 score across all classes.
+        macro_f1_per_class: Per-class F1 scores as a list of strings.
+
+    Example:
+        >>> exp = Experiment()
+        >>> exp.update("17/03/2024 14:26:57 INFO:Donor: AlexNet")
+        >>> exp.donor
+        'AlexNet'
+        >>> dict(exp)
+        {'donor': 'AlexNet', 'segment': '', ...}
+    """
+
     donor: str = ""
     segment: str = ""
     classifier: str = ""
@@ -32,6 +79,20 @@ class Experiment:
     }
 
     def update(self, line: str) -> None:
+        """Parse a log line and update the matching field.
+
+        Extracts the message segment after the third colon and matches it
+        against known patterns, updating the corresponding field in place.
+
+        Args:
+            line: A raw log line in the format ``DD/MM/YYYY HH:MM:SS level:message``.
+
+        Example:
+            >>> exp = Experiment()
+            >>> exp.update("17/03/2024 14:26:57 INFO:Donor: AlexNet")
+            >>> exp.donor
+            'AlexNet'
+        """
         message = line.split(":", 3)[-1].strip()
 
         for field_name, pattern in self._FIELD_PATTERNS.items():
@@ -45,6 +106,16 @@ class Experiment:
 
     @classmethod
     def header(cls) -> list[str]:
+        """Return the CSV column names in serialization order.
+
+        Returns:
+            A list of field name strings, matching the order that
+            ``__iter__`` yields values.
+
+        Example:
+            >>> Experiment.headers()
+            ['donor', 'segment', 'classifier', ...]
+        """
         base = [
             f.name
             for f in fields(cls)
@@ -55,6 +126,19 @@ class Experiment:
         return base + f1_per_class
 
     def __iter__(self) -> Iterator[tuple[str, str]]:
+        """Iterate over ``(field_name, value)`` pairs for CSV serialization.
+
+        Elements of list fields (e.g. ``macro_f1_per_class``)
+        are serialized individually.
+
+        Yields:
+            Tuple[str, str]: A ``(field_name, value)`` pair for each
+            public field.
+
+        Example:
+            >>> dict(Experiment(donor="ABC", accuracy="0.95"))
+            {'donor': 'ABC', 'accuracy': '0.95', ...}
+        """
         for f in fields(self):
             if f.name.startswith("_"):
                 continue
@@ -69,12 +153,31 @@ class Experiment:
 
 
 class ExperimentCSVHandler:
+    """Context manager for appending experiments to a CSV file.
+
+    Creates the file with a header on first use, appends rows on
+    subsequent runs — analogous to ``logging.FileHandler``.
+
+    Example:
+        >>> exp = Experiment()
+        >>> ...
+        >>> with ExperimentCSVHandler("results.csv") as handler:
+        ...     handler.write(exp)
+    """
+
     def __init__(self, path: Path) -> None:
+        """Initialize a handler.
+
+        Args:
+            path: Path to the target CSV file. Created with a header row if it
+            does not exist; rows are appended on subsequent runs.
+        """
         self._path = path
         self._file: None | IO = None
         self._writer: None | csv.DictWriter[str] = None
 
     def __enter__(self) -> Self:
+        """Open the CSV file and return the handler for use."""
         file_exists = self._path.exists()
         self._file = self._path.open("a", newline="")
         self._writer = csv.DictWriter(self._file, fieldnames=Experiment.header())
@@ -85,11 +188,13 @@ class ExperimentCSVHandler:
         return self
 
     def writerow(self, experiment: Experiment) -> None:
+        """Write a single experiment row to the CSV."""
         if self._writer is None:
             raise RuntimeError("Run this method with context manager")
         self._writer.writerow(dict(experiment))
 
     def writerows(self, experiments: Iterable[Experiment]) -> None:
+        """Write multiple experiment rows to the CSV."""
         if self._writer is None:
             raise RuntimeError("Run this method with context manager")
         self._writer.writerows(dict(exp) for exp in experiments)
@@ -100,5 +205,6 @@ class ExperimentCSVHandler:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        """Close the CSV file, flushing any remaining buffered writes."""
         if self._file:
             self._file.close()
