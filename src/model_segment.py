@@ -4,7 +4,7 @@ from typing import override
 
 import torch
 import torch.nn as tnn
-import torchvision.models as models  # pyright: ignore[reportMissingTypeStubs]
+import torchvision.models as models
 
 from utils import TensorShape, compute_shape
 
@@ -57,12 +57,9 @@ class SupportedModels(Enum):
 class ModelSegment(tnn.Module):
     def __init__(self, model: SupportedModels, index: int | slice) -> None:
         super().__init__()
-        modules: list[tnn.Module] = []
 
-        if isinstance(index, int):
-            modules = model.get_modules()[0:index]
-        else:
-            modules = model.get_modules()[index]
+        as_slice = slice(index) if isinstance(index, int) else index
+        modules = model.get_modules()[as_slice]
 
         self._convolution_layers: tnn.Sequential = tnn.Sequential()
         self._classifier_layers: tnn.Sequential = tnn.Sequential()
@@ -75,7 +72,7 @@ class ModelSegment(tnn.Module):
     ) -> TensorShape | int:
         result_shape = 0 if input_shape is None else input_shape
 
-        for module in self._convolution_layers + self._classifier_layers:
+        for module in self.get_modules():
             if isinstance(module, tnn.Linear):
                 result_shape = module.out_features
             else:
@@ -90,13 +87,13 @@ class ModelSegment(tnn.Module):
     def append(self, module: tnn.Module) -> None:
         if isinstance(module, tnn.Sequential):
             if any(isinstance(submodule, tnn.Linear) for submodule in module):
-                _ = self._classifier_layers.append(module)
+                self._classifier_layers.append(module)
             else:
-                _ = self._convolution_layers.append(module)
+                self._convolution_layers.append(module)
         elif isinstance(module, tnn.Linear):
-            _ = self._classifier_layers.append(module)
+            self._classifier_layers.append(module)
         else:
-            _ = self._convolution_layers.append(module)
+            self._convolution_layers.append(module)
 
     def get_modules(self) -> tnn.Sequential:
         return self._convolution_layers + self._classifier_layers
@@ -104,12 +101,12 @@ class ModelSegment(tnn.Module):
     @override
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if len(self._convolution_layers) == 0:
-            x = self._classifier_layers(x)  # pyright: ignore[reportAny]
+            x = self._classifier_layers(x)
         elif len(self._classifier_layers) == 0:
-            x = self._convolution_layers(x)  # pyright: ignore[reportAny]
+            x = self._convolution_layers(x)
         else:
-            x = self._convolution_layers(x)  # pyright: ignore[reportAny]
+            x = self._convolution_layers(x)
             x = torch.flatten(x, 1)
-            x = self._classifier_layers(x)  # pyright: ignore[reportAny]
+            x = self._classifier_layers(x)
 
         return x
