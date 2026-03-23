@@ -1,15 +1,14 @@
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Self, override
+from typing import override
 
 import torch
-import torchvision.transforms.v2 as tt2  # pyright: ignore[reportMissingTypeStubs]
+import torchvision.transforms.v2 as tt2
 from torch.utils.data import Dataset as BaseDataset
+from torchvision.io import decode_image
 
-# isort: off
-from torchvision.io import decode_image  # pyright: ignore[reportMissingTypeStubs]
-# isort: on
+__all__ = ["Dataset", "Marker"]
 
 
 class Marker(Enum):
@@ -34,7 +33,7 @@ class Dataset(BaseDataset[tuple[torch.Tensor, int]]):
     def __init__(
         self,
         images_directory: str | PathLike[str] | Path,
-        transform: tt2.Compose | tt2.Transform | None = None,
+        transform: tt2.Transform | None = None,
     ) -> None:
         self._images_directory: Path = Path(images_directory)
 
@@ -49,36 +48,22 @@ class Dataset(BaseDataset[tuple[torch.Tensor, int]]):
     def __len__(self) -> int:
         return len(self._pool)
 
+    def _load_image(self, image_path: Path) -> torch.Tensor:
+        image = decode_image(str(image_path), apply_exif_orientation=True)
+
+        if self._transform is not None:
+            image = self._transform(image)
+
+        if not isinstance(image, torch.Tensor):
+            raise RuntimeError("Image is not a tensor after transform")
+
+        return image.float()
+
     @override
     def __getitem__(self, index: int) -> tuple[torch.Tensor, int]:
-        def load_image(image_path: Path) -> torch.Tensor:
-            image = decode_image(str(image_path), apply_exif_orientation=True)
+        image, label = self._pool[index]
 
-            if self._transform is not None:
-                image = self._transform(image)  # pyright: ignore[reportAny]
-
-            if not isinstance(image, torch.Tensor):
-                raise RuntimeError("Image is not a tensor after transform")
-
-            return image.float()
-
-        image_path, label = self._pool[index]
-
-        image = load_image(image_path)
-
-        return image, label.value
-
-    def __iter__(self) -> Self:
-        self._pool_idx = -1
-        return self
-
-    def __next__(self) -> tuple[torch.Tensor, int]:
-        self._pool_idx += 1
-
-        if self._pool_idx > len(self._pool):
-            raise StopIteration
-
-        return self[self._pool_idx]
+        return self._load_image(image), label.value
 
     @staticmethod
     def _load_pool(
