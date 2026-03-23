@@ -28,7 +28,7 @@ from typing import Any, cast
 import torch.nn as tnn
 
 from classifier import Classifier
-from utils import TensorShape
+from tensor_shape import TensorShape
 
 __all__ = ["ModuleLoader"]
 

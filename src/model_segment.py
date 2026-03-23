@@ -13,7 +13,7 @@ import torch
 import torch.nn as tnn
 import torchvision.models as models
 
-from utils import TensorShape, compute_shape
+from tensor_shape import TensorShape, compute_shape
 
 __all__ = ["ModelSegment", "SupportedModels"]
 

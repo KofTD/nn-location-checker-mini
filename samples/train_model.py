@@ -19,8 +19,8 @@ from torchinfo import summary
 from classification_network import ClassificationNetwork
 from dataset import Dataset, Marker
 from metrics import ModelMetrics, Seconds
+from tensor_shape import TensorShape
 from training_config import TrainingConfig, load_config
-from utils import TensorShape
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

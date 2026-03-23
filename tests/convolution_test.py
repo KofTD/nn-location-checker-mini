@@ -6,7 +6,7 @@ sys_path.append(str(src_directory))
 
 import torch.nn as tnn
 
-from utils import TensorShape, compute_conv, compute_shape
+from tensor_shape import TensorShape, compute_conv, compute_shape
 
 
 def test_compute_conv():

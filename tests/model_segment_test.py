@@ -8,7 +8,7 @@ import torch
 import torch.nn as tnn
 
 from model_segment import ModelSegment, SupportedModels
-from utils import TensorShape
+from tensor_shape import TensorShape
 
 
 def test_init_int_index():

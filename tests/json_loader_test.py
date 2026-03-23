@@ -10,7 +10,7 @@ import torch.nn as tnn
 
 from classifier import Classifier
 from json_loader import ModuleLoader
-from utils import TensorShape
+from tensor_shape import TensorShape
 
 
 def write_json(tmp_path: Path, data: object, name: str = "modules.json") -> Path:

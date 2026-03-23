@@ -22,7 +22,7 @@ from classification_network import ClassificationNetwork
 from classifier import Classifier
 from json_loader import ModuleLoader
 from model_segment import ModelSegment, SupportedModels
-from utils import TensorShape
+from tensor_shape import TensorShape
 
 __all__ = ["TrainingConfig", "load_config"]
 

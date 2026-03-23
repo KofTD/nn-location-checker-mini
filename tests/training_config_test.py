@@ -11,8 +11,8 @@ import torch
 import torch.nn as tnn
 
 from classification_network import ClassificationNetwork
+from tensor_shape import TensorShape
 from training_config import TrainingConfig, load_config
-from utils import TensorShape
 
 
 def write_toml(tmp_path: Path, content: str, name: str = "config.toml") -> Path:

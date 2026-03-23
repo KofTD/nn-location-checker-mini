@@ -12,7 +12,7 @@ from typing import Self, cast, overload
 
 import torch.nn as tnn
 
-from utils import TensorShape
+from tensor_shape import TensorShape
 
 __all__ = ["Classifier"]
 
