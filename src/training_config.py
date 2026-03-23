@@ -1,3 +1,17 @@
+"""Training configuration loader for the training pipeline.
+
+This module provides `TrainingConfig`, a dataclass holding all components
+needed for a training run, and `load_config` for constructing it from a
+TOML file.
+
+Intended usage::
+
+    config = load_config(Path("config.toml"), TensorShape(227, 227, 3))
+
+    for epoch in range(config.epochs):
+        train(config.network, config.optimizer, config.loss_function)
+"""
+
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
