@@ -13,26 +13,6 @@ from matplotlib import pyplot as plot
 from dataset import Dataset, Marker
 
 
-def show_images(dataset_picks: list[tuple[torch.Tensor, int]]) -> None:
-    num_showed_imgs_x = 5
-    num_showed_imgs_y = 5
-
-    figsize = (10, 10)
-    fig, axes = plot.subplots(num_showed_imgs_y, num_showed_imgs_x, figsize=figsize)
-    _ = fig.suptitle("Dataset images")
-    _ = plot.setp(plot.gcf().get_axes(), xticks=[], yticks=[])
-    for i, ax in enumerate(axes.flat):
-        if i < len(dataset_picks):
-            img = dataset_picks[i][0].byte().permute(1, 2, 0).numpy()
-            label_idx = dataset_picks[i][1]
-            label_name = Marker(label_idx).name.capitalize().replace("_", " ")
-            ax.imshow(img)
-            ax.set_xlabel(label_name, fontsize=8)
-
-    fig.tight_layout()
-    plot.show()
-
-
 def create_argparser() -> argparse.ArgumentParser:
     argparser = argparse.ArgumentParser()
     _ = argparser.add_argument(
@@ -52,6 +32,26 @@ def create_argparser() -> argparse.ArgumentParser:
     )
 
     return argparser
+
+
+def show_images(dataset_picks: list[tuple[torch.Tensor, int]]) -> None:
+    num_showed_imgs_x = 5
+    num_showed_imgs_y = 5
+
+    figsize = (10, 10)
+    fig, axes = plot.subplots(num_showed_imgs_y, num_showed_imgs_x, figsize=figsize)
+    _ = fig.suptitle("Dataset images")
+    _ = plot.setp(plot.gcf().get_axes(), xticks=[], yticks=[])
+    for i, ax in enumerate(axes.flat):
+        if i < len(dataset_picks):
+            img = dataset_picks[i][0].byte().permute(1, 2, 0).numpy()
+            label_idx = dataset_picks[i][1]
+            label_name = Marker(label_idx).name.capitalize().replace("_", " ")
+            ax.imshow(img)
+            ax.set_xlabel(label_name, fontsize=8)
+
+    fig.tight_layout()
+    plot.show()
 
 
 def main(dataset_path: Path, image_size: tuple[int, int]) -> None:

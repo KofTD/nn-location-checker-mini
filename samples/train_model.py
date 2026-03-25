@@ -26,6 +26,29 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def create_argparser() -> argparse.ArgumentParser:
+    argparser = argparse.ArgumentParser()
+    _ = argparser.add_argument(
+        "-trd",
+        "--train_dataset",
+        type=Path,
+        required=True,
+        help="Path to train dataset",
+    )
+    _ = argparser.add_argument(
+        "-ted", "--test_dataset", type=Path, help="Path to test dataset", default=None
+    )
+    _ = argparser.add_argument(
+        "-c",
+        "--config",
+        type=Path,
+        required=True,
+        help="Path to train_config.toml",
+    )
+
+    return argparser
+
+
 def run_model(
     data_loader: DataLoader[tuple[torch.Tensor, int]],
     model: ClassificationNetwork,
@@ -154,29 +177,6 @@ def configure_logger() -> None:
         datefmt=date_template,
         handlers=[console_handler, file_handler],
     )
-
-
-def create_argparser() -> argparse.ArgumentParser:
-    argparser = argparse.ArgumentParser()
-    _ = argparser.add_argument(
-        "-trd",
-        "--train_dataset",
-        type=Path,
-        required=True,
-        help="Path to train dataset",
-    )
-    _ = argparser.add_argument(
-        "-ted", "--test_dataset", type=Path, help="Path to test dataset", default=None
-    )
-    _ = argparser.add_argument(
-        "-c",
-        "--config",
-        type=Path,
-        required=True,
-        help="Path to train_config.toml",
-    )
-
-    return argparser
 
 
 if __name__ == "__main__":
