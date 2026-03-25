@@ -1,6 +1,5 @@
 import argparse
 import logging
-import time
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from sys import path as sys_path
@@ -9,18 +8,16 @@ src_directory = Path(__file__).resolve().parents[1].joinpath("src")
 sys_path.append(str(src_directory))
 
 
-import numpy as np
-import numpy.typing as npt
 import torch
 import torchvision.transforms.v2 as tt2
 from torch.utils.data import DataLoader
 from torchinfo import summary
 
-from classification_network import ClassificationNetwork
+from classification_network import test_model, train_model
 from dataset import Dataset, Marker
-from metrics import ModelMetrics, Seconds
+from metrics import ModelMetrics
 from tensor_shape import TensorShape
-from training_config import TrainingConfig, load_config
+from training_config import load_config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -47,56 +44,6 @@ def create_argparser() -> argparse.ArgumentParser:
     )
 
     return argparser
-
-
-def run_model(
-    data_loader: DataLoader[tuple[torch.Tensor, int]],
-    model: ClassificationNetwork,
-    device: torch.device,
-) -> tuple[npt.NDArray[np.int8], npt.NDArray[np.int8], Seconds]:
-    model.eval()
-    total_time = 0.0
-    all_predictions: list[torch.Tensor] = []
-    all_labels: list[torch.Tensor] = []
-    with torch.no_grad():
-        for images, labels in data_loader:
-            images = images.to(device)
-            labels = labels.to(device)
-            batch_start_time = time.time()
-            outputs = model(images)
-            batch_time = time.time() - batch_start_time
-            total_time += batch_time
-            probs = torch.softmax(outputs, dim=1)
-            _, predicted = probs.max(dim=1)
-            all_predictions.append(predicted)
-            all_labels.append(labels)
-    total_predictions = torch.cat(all_predictions).numpy().astype(np.int8)
-    total_labels = torch.cat(all_labels).numpy().astype(np.int8)
-    return total_labels, total_predictions, total_time
-
-
-def train(loader: DataLoader, device: torch.device, config: TrainingConfig) -> None:
-    for epoch in range(config.epochs):
-        config.network.train()
-        logger.info(f"Epoch number {epoch} starts")
-        for _, (images, labels) in enumerate(loader):
-            images = images.requires_grad_().to(device)
-            labels = labels.to(device)
-            outputs = config.network(images)
-            loss = config.loss_function(outputs, labels)
-
-            if torch.isnan(loss):
-                message = "NaN loss detected, skipping batch"
-                logger.critical(message)
-                raise RuntimeError(message)
-
-            config.optimizer.zero_grad()
-            loss.backward()
-            _ = config.optimizer.step()
-        metrics = ModelMetrics(*run_model(loader, config.network, device))
-        logger.info(f"Epoch number {epoch} ends")
-        logger.info(f"Epoch accuracy: {metrics.accuracy()}")
-        logger.info(f"Epoch loss: {loss.item()}")
 
 
 def main(train_dataset: Path, test_dataset: Path, config: Path) -> None:
@@ -137,11 +84,11 @@ def main(train_dataset: Path, test_dataset: Path, config: Path) -> None:
     logger.info(f"Optimizer: {cfg.optimizer.__class__.__name__}")
 
     logger.info("Start of training")
-    train(train_loader, device, cfg)
+    train_model(train_loader, device, cfg)
     logger.info("End of training")
 
     logger.info("Start of testing")
-    metrics = ModelMetrics(*run_model(test_loader, cfg.network, device))
+    metrics = ModelMetrics(*test_model(test_loader, cfg.network, device))
     logger.info(f"Accuracy: {metrics.accuracy():.4f}")
     logger.info(
         f"Macro f1 per class: {[round(metrics.f1_score(label), 4) for label in Marker]}"

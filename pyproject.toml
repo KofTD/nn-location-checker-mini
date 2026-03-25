@@ -49,13 +49,16 @@ pydocstyle.convention = "google"
 "samples/train_model.py" = [
   "G004", # f-strings can't harm anything there
 ]
+"src/classification_network.py" = [
+  "G004", # f-strings can't harm anything there
+]
 
 [tool.basedpyright]
 include = ["src", "samples"]
 extraPaths = ["src"]
 
 [tool.coverage.report]
-exclude_lines = ["raise NotImplementedError", "@overload"]
+exclude_lines = ["raise NotImplementedError", "@overload", "if TYPE_CHECKING:"]
 
 [tool.pytest]
 tmp_path_retention_policy = "none"
