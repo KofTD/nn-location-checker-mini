@@ -49,6 +49,9 @@ pydocstyle.convention = "google"
 "samples/train_model.py" = [
   "G004", # f-strings can't harm anything there
 ]
+"samples/run_experiment.py" = [
+  "G004", # f-strings can't harm anything there
+]
 "src/classification_network.py" = [
   "G004", # f-strings can't harm anything there
 ]

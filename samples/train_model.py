@@ -1,12 +1,10 @@
 import argparse
 import logging
-from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from sys import path as sys_path
 
 src_directory = Path(__file__).resolve().parents[1].joinpath("src")
 sys_path.append(str(src_directory))
-
 
 import torch
 import torchvision.transforms.v2 as tt2
@@ -15,6 +13,7 @@ from torchinfo import summary
 
 from classification_network import test_model, train_model
 from dataset import Dataset, Marker
+from logger import configure_logger
 from metrics import ModelMetrics
 from tensor_shape import TensorShape
 from training_config import load_config
@@ -41,6 +40,19 @@ def create_argparser() -> argparse.ArgumentParser:
         type=Path,
         required=True,
         help="Path to train_config.toml",
+    )
+    _ = argparser.add_argument(
+        "-lf",
+        "--log-folder",
+        type=Path,
+        default=Path("./logs/"),
+        help="Path to log folder",
+    )
+    _ = argparser.add_argument(
+        "-ln",
+        "--log-name",
+        default="train.log",
+        help="Name of the log file with extension",
     )
 
     return argparser
@@ -105,29 +117,10 @@ def format_torchsummary(summary: str) -> str:
     return "\n".join(lines[3:end])
 
 
-def configure_logger() -> None:
-    to_logs_folder = Path("./logs/")
-    if not to_logs_folder.exists():
-        raise RuntimeError("Please, init logs folder in root of the project")
-    file_handler = TimedRotatingFileHandler(
-        to_logs_folder.joinpath("latest.log"), "midnight", encoding="utf-8"
-    )
-
-    console_handler = logging.StreamHandler()
-
-    format_template = "%(asctime)s %(levelname)s:%(message)s"
-    date_template = "%d/%m/%Y %H:%M:%S"
-    logging.basicConfig(
-        format=format_template,
-        datefmt=date_template,
-        handlers=[console_handler, file_handler],
-    )
-
-
 if __name__ == "__main__":
-    configure_logger()
     parser = create_argparser()
     arguments = parser.parse_args()
+    configure_logger(arguments.log_folder, arguments.log_name)
     train_dataset = arguments.train_dataset
     test_dataset = arguments.test_dataset or arguments.train_dataset
     config = arguments.config
