@@ -68,6 +68,12 @@ def setup_dataloaders(
     )
 
 
+def format_torchsummary(summary: str) -> str:
+    lines = summary.splitlines()
+    end = next(i for i, line in enumerate(lines) if i > 3 and line.endswith("="))
+    return "\n".join(lines[3:end])
+
+
 def main(train_dataset: Path, test_dataset: Path, config: Path) -> None:
     target_shape = (227, 227)
     input_transform = tt2.Compose([tt2.Resize(target_shape)])
@@ -109,12 +115,6 @@ def main(train_dataset: Path, test_dataset: Path, config: Path) -> None:
         f"Classification speed: {1 / metrics.avg_time_per_image():.4f} images/s"
     )
     logger.info("End of testing")
-
-
-def format_torchsummary(summary: str) -> str:
-    lines = summary.splitlines()
-    end = next(i for i, line in enumerate(lines) if i > 3 and line.endswith("="))
-    return "\n".join(lines[3:end])
 
 
 if __name__ == "__main__":
