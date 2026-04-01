@@ -10,6 +10,7 @@ from typing import NamedTuple, Never, overload
 
 import torch.nn as tnn
 from torchvision.models.densenet import _DenseBlock, _DenseLayer, _Transition
+from torchvision.models.resnet import BasicBlock, Bottleneck
 
 __all__ = ["TensorShape", "compute_conv", "compute_shape"]
 
@@ -89,6 +90,14 @@ def compute_shape(module: _Transition, previous_shape: TensorShape) -> TensorSha
 def compute_shape(
     module: tnn.AvgPool2d, previous_shape: TensorShape
 ) -> TensorShape: ...
+
+
+@overload
+def compute_shape(module: BasicBlock, previous_shape: TensorShape) -> TensorShape: ...
+
+
+@overload
+def compute_shape(module: Bottleneck, previous_shape: TensorShape) -> TensorShape: ...
 
 
 @overload
@@ -225,5 +234,25 @@ def _(module: _DenseBlock, previous_shape: TensorShape) -> TensorShape:
 def _(module: _Transition, previous_shape: TensorShape) -> TensorShape:
     result_shape = previous_shape
     for submodule in module.children():
+        result_shape = compute_shape(submodule, result_shape)
+    return result_shape
+
+
+@compute_shape.register
+def _(module: BasicBlock, previous_shape: TensorShape) -> TensorShape:
+    result_shape = previous_shape
+    for name, submodule in module.named_children():
+        if name == "downsample":
+            continue
+        result_shape = compute_shape(submodule, result_shape)
+    return result_shape
+
+
+@compute_shape.register
+def _(module: Bottleneck, previous_shape: TensorShape) -> TensorShape:
+    result_shape = previous_shape
+    for name, submodule in module.named_children():
+        if name == "downsample":
+            continue
         result_shape = compute_shape(submodule, result_shape)
     return result_shape
