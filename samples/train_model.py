@@ -58,10 +58,10 @@ def create_argparser() -> argparse.ArgumentParser:
 
 
 def setup_dataloaders(
-    paths: tuple[Path, Path], batch_size: int, transform: tt2.Transform, to_float: bool
+    paths: tuple[Path, Path], batch_size: int, transform: tt2.Transform
 ) -> tuple[DataLoader, DataLoader]:
-    train_data = Dataset(paths[0], transform, to_float)
-    test_data = Dataset(paths[1], transform, to_float)
+    train_data = Dataset(paths[0], transform)
+    test_data = Dataset(paths[1], transform)
     return DataLoader(train_data, batch_size, shuffle=True), DataLoader(
         test_data, batch_size, shuffle=False
     )
@@ -75,18 +75,11 @@ def format_torchsummary(summary: str) -> str:
 
 def main(train_dataset: Path, test_dataset: Path, config: Path) -> None:
     cfg = load_config(config)
-    if cfg.transform is None:
-        cfg.transform = tt2.Resize(cfg.target_shape[:2])
-        train_loader, test_loader = setup_dataloaders(
-            (train_dataset, test_dataset), cfg.batch_size, cfg.transform, False
-        )
-    else:
-        train_loader, test_loader = setup_dataloaders(
-            (train_dataset, test_dataset),
-            cfg.batch_size,
-            cfg.transform,
-            True,
-        )
+    train_loader, test_loader = setup_dataloaders(
+        (train_dataset, test_dataset),
+        cfg.batch_size,
+        tt2.Resize(cfg.target_shape[:2]) if cfg.transform is None else cfg.transform,
+    )
 
     network_summary = summary(cfg.network, verbose=0, depth=5, col_names=[])
     logger.info(f"\n{format_torchsummary(str(network_summary))}")
