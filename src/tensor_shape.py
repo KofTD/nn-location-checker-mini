@@ -11,6 +11,7 @@ from typing import NamedTuple, Never, overload
 import torch.nn as tnn
 from torchvision.models.densenet import _DenseBlock, _DenseLayer, _Transition
 from torchvision.models.resnet import BasicBlock, Bottleneck
+from torchvision.models.squeezenet import Fire
 
 __all__ = ["TensorShape", "compute_conv", "compute_shape"]
 
@@ -101,6 +102,10 @@ def compute_shape(module: Bottleneck, previous_shape: TensorShape) -> TensorShap
 
 
 @overload
+def compute_shape(module: Fire, previous_shape: TensorShape) -> TensorShape: ...
+
+
+@overload
 def compute_shape(module: tnn.Module, previous_shape: TensorShape) -> Never: ...
 
 
@@ -111,7 +116,7 @@ def compute_conv(
 
 
 @singledispatch
-def compute_shape(module: tnn.Module, previous_shape: TensorShape) -> Never:
+def compute_shape(module: tnn.Module, _previous_shape: TensorShape) -> Never:
     raise NotImplementedError(
         f"Cannot compute features map for the module: {type(module).__name__}"
     )
@@ -256,3 +261,9 @@ def _(module: Bottleneck, previous_shape: TensorShape) -> TensorShape:
             continue
         result_shape = compute_shape(submodule, result_shape)
     return result_shape
+
+
+@compute_shape.register
+def _(module: Fire, previous_shape: TensorShape) -> TensorShape:
+    out_channels = module.expand1x1.out_channels + module.expand3x3.out_channels
+    return TensorShape(previous_shape.height, previous_shape.width, out_channels)
