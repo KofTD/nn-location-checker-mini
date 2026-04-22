@@ -6,7 +6,6 @@ epochs = 1
 name = "AlexNet"
 end = 2
 classifier = "./classifiers/alexnet_classifier.json"
-image_size = [224, 224]
 
 [optimizer]
 name = "SGD"
