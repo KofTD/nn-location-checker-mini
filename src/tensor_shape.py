@@ -10,6 +10,7 @@ from typing import NamedTuple, Never, overload
 
 import torch.nn as tnn
 from torchvision.models.densenet import _DenseBlock, _DenseLayer, _Transition
+from torchvision.models.inception import BasicConv2d
 from torchvision.models.resnet import BasicBlock, Bottleneck
 from torchvision.models.squeezenet import Fire
 
@@ -106,6 +107,10 @@ def compute_shape(module: Fire, previous_shape: TensorShape) -> TensorShape: ...
 
 
 @overload
+def compute_shape(module: BasicConv2d, previous_shape: TensorShape) -> TensorShape: ...
+
+
+@overload
 def compute_shape(module: tnn.Module, previous_shape: TensorShape) -> Never: ...
 
 
@@ -150,6 +155,17 @@ def _(
     return previous_shape
 
 
+def compute_pool(
+    origin: int, padding: int, kernel: int, stride: int, dilation: int, ceil_mode: bool
+) -> int:
+    dimension = origin + 2 * padding - dilation * (kernel - 1) - 1 + stride
+    if ceil_mode:
+        return (
+            dimension + stride - 1
+        ) // stride  # (x + y - 1) // y === ceil(x / y) for x > 0, y > 0
+    return dimension // stride
+
+
 @compute_shape.register
 def _(module: tnn.MaxPool2d, previous_shape: TensorShape) -> TensorShape:
     padding_height, padding_width = _to_pair(module.padding)
@@ -157,15 +173,21 @@ def _(module: tnn.MaxPool2d, previous_shape: TensorShape) -> TensorShape:
     stride_height, stride_width = _to_pair(module.stride)
     dilation_height, dilation_width = _to_pair(module.dilation)
 
-    new_height = compute_conv(
+    new_height = compute_pool(
         previous_shape.height,
         padding_height,
         kernel_height,
         stride_height,
         dilation_height,
+        module.ceil_mode,
     )
-    new_width = compute_conv(
-        previous_shape.width, padding_width, kernel_width, stride_width, dilation_width
+    new_width = compute_pool(
+        previous_shape.width,
+        padding_width,
+        kernel_width,
+        stride_width,
+        dilation_width,
+        module.ceil_mode,
     )
     return TensorShape(new_height, new_width, previous_shape.channels)
 
@@ -176,11 +198,21 @@ def _(module: tnn.AvgPool2d, previous_shape: TensorShape) -> TensorShape:
     kernel_height, kernel_width = _to_pair(module.kernel_size)
     stride_height, stride_width = _to_pair(module.stride)
 
-    new_height = compute_conv(
-        previous_shape.height, padding_height, kernel_height, stride_height, 1
+    new_height = compute_pool(
+        previous_shape.height,
+        padding_height,
+        kernel_height,
+        stride_height,
+        1,
+        module.ceil_mode,
     )
-    new_width = compute_conv(
-        previous_shape.width, padding_width, kernel_width, stride_width, 1
+    new_width = compute_pool(
+        previous_shape.width,
+        padding_width,
+        kernel_width,
+        stride_width,
+        1,
+        module.ceil_mode,
     )
     return TensorShape(new_height, new_width, previous_shape.channels)
 
@@ -267,3 +299,11 @@ def _(module: Bottleneck, previous_shape: TensorShape) -> TensorShape:
 def _(module: Fire, previous_shape: TensorShape) -> TensorShape:
     out_channels = module.expand1x1.out_channels + module.expand3x3.out_channels
     return TensorShape(previous_shape.height, previous_shape.width, out_channels)
+
+
+@compute_shape.register
+def _(module: BasicConv2d, previous_shape: TensorShape) -> TensorShape:
+    result_shape = previous_shape
+    for submodule in module.children():
+        result_shape = compute_shape(submodule, result_shape)
+    return result_shape
