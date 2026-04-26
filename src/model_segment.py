@@ -85,6 +85,8 @@ class ModelSegment(tnn.Module):
             elif self._donor.startswith("mnasnet"):
                 x = x.mean([2, 3])
                 return self._classifier_layers(x)
+            elif self._donor == "mobilenet_v2":
+                x = torch.nn.functional.adaptive_avg_pool2d(x, (1, 1))
             x = torch.flatten(x, 1)
             x = self._classifier_layers(x)
 

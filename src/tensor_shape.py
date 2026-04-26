@@ -11,6 +11,12 @@ from typing import NamedTuple, Never, overload
 import torch.nn as tnn
 from torchvision.models.densenet import _DenseBlock, _DenseLayer, _Transition
 from torchvision.models.mnasnet import _InvertedResidual
+from torchvision.models.mobilenetv2 import (
+    InvertedResidual as Mobilenetv2InvertedResidual,
+)
+from torchvision.models.mobilenetv3 import (
+    InvertedResidual as Mobilenetv3InvertedResidual,
+)
 from torchvision.models.resnet import BasicBlock, Bottleneck
 from torchvision.models.squeezenet import Fire
 
@@ -54,7 +60,8 @@ def compute_shape(module: tnn.Conv2d, previous_shape: TensorShape) -> TensorShap
 
 @overload
 def compute_shape(
-    _module: tnn.ReLU | tnn.Dropout | tnn.BatchNorm2d, previous_shape: TensorShape
+    _module: tnn.ReLU | tnn.Dropout | tnn.BatchNorm2d | tnn.ReLU6 | tnn.Hardswish,
+    previous_shape: TensorShape,
 ) -> TensorShape: ...
 
 
@@ -107,6 +114,18 @@ def compute_shape(module: Fire, previous_shape: TensorShape) -> TensorShape: ...
 
 
 @overload
+def compute_shape(
+    module: Mobilenetv2InvertedResidual, previous_shape: TensorShape
+) -> TensorShape: ...
+
+
+@overload
+def compute_shape(
+    module: Mobilenetv3InvertedResidual, previous_shape: TensorShape
+) -> TensorShape: ...
+
+
+@overload
 def compute_shape(module: tnn.Module, previous_shape: TensorShape) -> Never: ...
 
 
@@ -146,7 +165,8 @@ def _(module: tnn.Conv2d, previous_shape: TensorShape) -> TensorShape:
 
 @compute_shape.register
 def _(
-    _module: tnn.ReLU | tnn.Dropout | tnn.BatchNorm2d, previous_shape: TensorShape
+    _module: tnn.ReLU | tnn.Dropout | tnn.BatchNorm2d | tnn.ReLU6 | tnn.Hardswish,
+    previous_shape: TensorShape,
 ) -> TensorShape:
     return previous_shape
 
@@ -283,7 +303,33 @@ def _(module: _InvertedResidual, previous_shape: TensorShape) -> TensorShape:
         if isinstance(m, tnn.Conv2d)
     )
     return TensorShape(
+        previous_shape.height // stride, previous_shape.width // stride, out_channels
+    )
+
+
+@compute_shape.register
+def _(module: Mobilenetv2InvertedResidual, previous_shape: TensorShape) -> TensorShape:
+    channels = next(
+        submodule.out_channels
+        for submodule in reversed(list(module.conv))
+        if isinstance(submodule, tnn.Conv2d)
+    )
+    return TensorShape(
+        previous_shape.height // module.stride,
+        previous_shape.height // module.stride,
+        channels,
+    )
+
+
+@compute_shape.register
+def _(module: Mobilenetv3InvertedResidual, previous_shape: TensorShape) -> TensorShape:
+    stride = next(
+        submodule.stride[0]
+        for submodule in module.block.modules()
+        if isinstance(submodule, tnn.Conv2d) and submodule.groups > 1
+    )
+    return TensorShape(
         previous_shape.height // stride,
         previous_shape.width // stride,
-        out_channels,
+        module.out_channels,
     )
