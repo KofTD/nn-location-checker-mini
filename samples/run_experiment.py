@@ -15,60 +15,64 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def venv_exists() -> bool:
+    project_root = Path(__file__).resolve().parents[1]
+    python_unix = project_root.joinpath(".venv/bin/python")
+    python_win = project_root.joinpath(".venv/Scripts/python.exe")
+    return python_unix.exists() or python_win.exists()
+
+
 def create_argparser() -> argparse.ArgumentParser:
     argparser = argparse.ArgumentParser()
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-trd",
         "--train_dataset",
         type=Path,
         required=True,
         help="Path to train dataset",
     )
-    _ = argparser.add_argument(
-        "-ted", "--test_dataset", type=Path, help="Path to test dataset", default=None
+    argparser.add_argument(
+        "-ted",
+        "--test_dataset",
+        type=Path,
+        help="Path to test dataset",
+        default=None
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-c",
         "--config",
         type=Path,
         required=True,
         help="Path to train_config.toml",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-o",
         "--output",
         type=Path,
         default=Path("experiment_results.csv"),
         help="Path to output csv file",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-lf",
         "--log-folder",
         type=Path,
         default=Path("./logs/"),
         help="Path to log folder",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-ln",
         "--log-name",
         default="experiment.log",
         help="Name of the log file with extension",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-m",
-        "--models_folder",
+        "--models-folder",
         type=Path,
         default=Path("./models/"),
         help="Path to folder where model's weights will be saved",
     )
-
     return argparser
-
-
-def venv_exists() -> bool:
-    project_root = Path(__file__).resolve().parents[1]
-    python = project_root.joinpath(".venv/bin/python")
-    return python.exists()
 
 
 _LOG_PREFIX = re.compile(r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2} \w+:(.*)", re.DOTALL)
@@ -86,7 +90,7 @@ def run(
         raise RuntimeError("Create venv")
 
     experiment = Experiment()
-    training_script = Path(__file__).resolve().parents[0].joinpath("train_model.py")
+    training_script = Path(__file__).resolve().parent.joinpath("train_model.py")
     with subprocess.Popen(
         [
             sys.executable,
@@ -104,7 +108,7 @@ def run(
         text=True,
         bufsize=1,
     ) as training:
-        for line in training.stderr:  # ty:ignore[not-iterable]
+        for line in training.stderr: # ty:ignore[not-iterable]
             logger.info(dedup_logger_output(line.rstrip()))
             experiment.update(line)
 

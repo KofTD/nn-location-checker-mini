@@ -6,7 +6,7 @@ TOML file.
 
 Intended usage::
 
-    config = load_config(Path("config.toml"), TensorShape(227, 227, 3))
+    config = load_config(Path("config.toml"))
 
     for epoch in range(config.epochs):
         train(config.network, config.optimizer, config.loss_function)

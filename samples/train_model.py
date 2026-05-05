@@ -24,44 +24,47 @@ logger.setLevel(logging.INFO)
 
 def create_argparser() -> argparse.ArgumentParser:
     argparser = argparse.ArgumentParser()
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-trd",
         "--train_dataset",
         type=Path,
         required=True,
         help="Path to train dataset",
     )
-    _ = argparser.add_argument(
-        "-ted", "--test_dataset", type=Path, help="Path to test dataset", default=None
+    argparser.add_argument(
+        "-ted",
+        "--test_dataset",
+        type=Path,
+        help="Path to test dataset",
+        default=None
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-c",
         "--config",
         type=Path,
         required=True,
         help="Path to train_config.toml",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-lf",
         "--log-folder",
         type=Path,
         default=Path("./logs/"),
         help="Path to log folder",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-ln",
         "--log-name",
         default="train.log",
         help="Name of the log file with extension",
     )
-    _ = argparser.add_argument(
+    argparser.add_argument(
         "-m",
         "--models_folder",
         type=Path,
         default=Path("./models/"),
         help="Path to folder where model's weights will be saved",
     )
-
     return argparser
 
 
@@ -113,7 +116,7 @@ def main(
     logger.info(f"Batch size: {cfg.batch_size}")
     logger.info(f"Number of batches: {len(train_loader)}")
     logger.info(f"Device: {device}")
-    logger.info(f"Learning rate {cfg.learning_rate}")
+    logger.info(f"Learning rate: {cfg.learning_rate}")
     logger.info(f"Number of epochs: {cfg.epochs}")
     logger.info(f"Loss function: {cfg.loss_function.__class__.__name__}")
     logger.info(f"Optimizer: {cfg.optimizer.__class__.__name__}")
@@ -152,8 +155,9 @@ if __name__ == "__main__":
     parser = create_argparser()
     arguments = parser.parse_args()
     configure_logger(arguments.log_folder, arguments.log_name)
-    train_dataset = arguments.train_dataset
-    test_dataset = arguments.test_dataset or arguments.train_dataset
-    config = arguments.config
-    save_folder = arguments.models_folder
-    main(train_dataset, test_dataset, config, save_folder)
+    main(
+        arguments.train_dataset,
+        arguments.test_dataset or arguments.train_dataset,
+        arguments.config,
+        arguments.models_folder
+    )
