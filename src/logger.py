@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
+from sys import stdout
 
 
 def configure_logger(log_folder: Path, filename: str | None) -> None:
@@ -13,7 +14,7 @@ def configure_logger(log_folder: Path, filename: str | None) -> None:
         encoding="utf-8",
     )
 
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(stdout)
     format_template = "%(asctime)s %(levelname)s:%(message)s"
     date_template = "%d/%m/%Y %H:%M:%S"
     logging.basicConfig(

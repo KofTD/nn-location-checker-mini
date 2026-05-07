@@ -32,11 +32,7 @@ def create_argparser() -> argparse.ArgumentParser:
         help="Path to train dataset",
     )
     argparser.add_argument(
-        "-ted",
-        "--test_dataset",
-        type=Path,
-        help="Path to test dataset",
-        default=None
+        "-ted", "--test_dataset", type=Path, help="Path to test dataset", default=None
     )
     argparser.add_argument(
         "-c",
@@ -104,11 +100,11 @@ def run(
             "-m",
             str(save_folder),
         ],
-        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         text=True,
         bufsize=1,
     ) as training:
-        for line in training.stderr: # ty:ignore[not-iterable]
+        for line in training.stdout:  # ty:ignore[not-iterable]
             logger.info(dedup_logger_output(line.rstrip()))
             experiment.update(line)
 
