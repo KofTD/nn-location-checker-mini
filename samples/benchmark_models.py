@@ -24,48 +24,48 @@ def create_argparser() -> argparse.ArgumentParser:
         "--train_dataset",
         type=Path,
         required=True,
-        help="Path to the train dataset"
+        help="Path to the train dataset",
     )
     parser.add_argument(
         "-ted",
         "--test_dataset",
         type=Path,
         required=True,
-        help="Path to the test dataset"
+        help="Path to the test dataset",
     )
     parser.add_argument(
         "-cf",
         "--configs_folder",
         type=Path,
         default=Path("../configs"),
-        help="Folder containing TOML config files (default: ../configs)"
+        help="Folder containing TOML config files (default: ../configs)",
     )
     parser.add_argument(
         "-o",
         "--output",
         type=Path,
         default=Path("benchmark_results.csv"),
-        help="Output CSV file (default: benchmark_results.csv)"
+        help="Output CSV file (default: benchmark_results.csv)",
     )
     parser.add_argument(
         "-lf",
         "--log-folder",
         type=Path,
         default=Path("./logs"),
-        help="Path to the log folder"
+        help="Path to the log folder",
     )
     parser.add_argument(
         "-m",
         "--models-folder",
         type=Path,
         default=Path("./models"),
-        help="Path to folder where models will be saved"
+        help="Path to folder where models will be saved",
     )
     parser.add_argument(
         "--skip-configs",
         nargs="+",
         default=[],
-        help="Skip configs with given names (without .toml extension)"
+        help="Skip configs with given names (without .toml extension)",
     )
     return parser
 
@@ -73,9 +73,7 @@ def create_argparser() -> argparse.ArgumentParser:
 def get_config_files(configs_folder: Path, skip_names: set[str]) -> list[Path]:
     """Return sorted list of .toml config files, skipping those in skip_names."""
     if not configs_folder.exists():
-        raise FileNotFoundError(
-            f"Configs folder {configs_folder} does not exist."
-        )
+        raise FileNotFoundError(f"Configs folder {configs_folder} does not exist.")
     all_configs = sorted(configs_folder.glob("*.toml"))
     filtered = [cfg for cfg in all_configs if cfg.stem not in skip_names]
     if not filtered:
@@ -117,9 +115,7 @@ def main() -> None:
     config_files = get_config_files(args.configs_folder, skip_set)
 
     if skip_set:
-        logger.info(
-            f"Skipping {len(skip_set)} config(s): {', '.join(skip_set)}"
-        )
+        logger.info(f"Skipping {len(skip_set)} config(s): {', '.join(skip_set)}")
     logger.info(f"Found {len(config_files)} config files:")
     for cfg in config_files:
         logger.info(f"  {cfg.name}")

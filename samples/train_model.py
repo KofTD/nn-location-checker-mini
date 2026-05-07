@@ -32,11 +32,7 @@ def create_argparser() -> argparse.ArgumentParser:
         help="Path to train dataset",
     )
     argparser.add_argument(
-        "-ted",
-        "--test_dataset",
-        type=Path,
-        help="Path to test dataset",
-        default=None
+        "-ted", "--test_dataset", type=Path, help="Path to test dataset", default=None
     )
     argparser.add_argument(
         "-c",
@@ -97,7 +93,9 @@ def create_file_name(save_folder: Path) -> str:
 def main(
     train_dataset: Path, test_dataset: Path, config: Path, save_folder: Path
 ) -> None:
+    logger.info("Loading config")
     cfg = load_config(config)
+    logger.info("Setup dataloaders")
     train_loader, test_loader = setup_dataloaders(
         (train_dataset, test_dataset),
         cfg.batch_size,
@@ -125,6 +123,7 @@ def main(
     train_model(train_loader, device, cfg)
     logger.info("End of training")
 
+    logger.info(f"Number of batches: {len(test_loader)}")
     logger.info("Start of testing")
     total_labels, total_predictions, total_time = test_model(
         test_loader, cfg.network, device
@@ -159,5 +158,5 @@ if __name__ == "__main__":
         arguments.train_dataset,
         arguments.test_dataset or arguments.train_dataset,
         arguments.config,
-        arguments.models_folder
+        arguments.models_folder,
     )
