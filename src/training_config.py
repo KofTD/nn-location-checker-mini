@@ -12,6 +12,7 @@ Intended usage::
         train(config.network, config.optimizer, config.loss_function)
 """
 
+import logging
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,6 +29,9 @@ from model_segment import ModelSegment
 from tensor_shape import TensorShape
 
 __all__ = ["TrainingConfig", "load_config"]
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 @dataclass
@@ -50,27 +54,35 @@ def load_config(file: Path) -> TrainingConfig:
     with file.open("rb") as configuration_file:
         config = tomllib.load(configuration_file)
 
+    # p for part/partition
     macro_p = config["macro_parameters"]
     model_p = config["model"]
     optimizer_p = config["optimizer"]
     loss_p = config["loss_function"]
 
+    logger.info("Trying to find a model")
     model = lookup_model(model_p["name"])
+    logger.info("Loading internals")
     internals = load_model_internals(model)
     height, width = cast(tt2.CenterCrop, internals.transform.transforms[1]).size
     target_shape = TensorShape(height, width, 3)
     segment_start = model_p.get("start", 0)
     segment_end = model_p["end"]
+    logger.info("Cutting off segment of the model")
     segment = ModelSegment(
         internals.modules, slice(segment_start, segment_end), model_p["name"]
     )
     output_shape = segment.compute_shape(target_shape)
+    logger.info("Loading classifier")
     classifier = ModuleLoader(model_p["classifier"]).load(output_shape)
+    logger.info("Building network")
     network = ClassificationNetwork(segment, classifier)
 
+    logger.info("Setup optimizer")
     optimizer = getattr(torch.optim, optimizer_p["name"])(
         network.parameters(), lr=optimizer_p["learning_rate"]
     )
+    logger.info("Setup loss function")
     loss_fn = getattr(torch.nn, loss_p["name"])()
 
     return TrainingConfig(
