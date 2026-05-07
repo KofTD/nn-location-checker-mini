@@ -18,27 +18,25 @@ logger = logging.getLogger(__name__)
 
 def create_argparser() -> argparse.ArgumentParser:
     """Create argument parser for plotting script."""
-    parser = argparse.ArgumentParser(
-        description="Plot benchmark results from CSV file"
-    )
+    parser = argparse.ArgumentParser(description="Plot benchmark results from CSV file")
     parser.add_argument(
         "-i",
         "--input",
         type=Path,
         default=Path("benchmark_results.csv"),
-        help="Input CSV file (default: benchmark_results.csv)"
+        help="Input CSV file (default: benchmark_results.csv)",
     )
     parser.add_argument(
         "-o",
         "--output",
         type=Path,
         default=Path("benchmark_plots.png"),
-        help="Output plot file (default: benchmark_plots.png)"
+        help="Output plot file (default: benchmark_plots.png)",
     )
     parser.add_argument(
         "--show",
         action="store_true",
-        help="Show plot interactively (default: save only)"
+        help="Show plot interactively (default: save only)",
     )
     return parser
 
@@ -88,9 +86,7 @@ def load_data(
                 f1 = float(row["macro_f1"])
                 avg = float(row["avg_time_per_image"])
             except (ValueError, TypeError) as e:
-                raise ValueError(
-                    f"Row {row_num}: invalid numeric value - {e}"
-                ) from e
+                raise ValueError(f"Row {row_num}: invalid numeric value - {e}") from e
 
             segment = row.get("segment", "").strip()
             if segment:
