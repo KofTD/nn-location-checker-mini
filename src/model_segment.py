@@ -11,6 +11,8 @@ from typing import cast, override
 import torch
 import torch.nn as tnn
 from timm.models import FastVit, VisionTransformer
+from torchvision.models.googlenet import InceptionAux as GoogLeNetAux
+from torchvision.models.inception import InceptionAux
 
 from tensor_shape import TensorShape, compute_shape
 
@@ -56,6 +58,8 @@ class ModelSegment(tnn.Module):
             self.append(module)
 
     def append(self, module: tnn.Module) -> None:
+        if isinstance(module, (InceptionAux, GoogLeNetAux)):
+            return
         if isinstance(module, tnn.Sequential):
             if any(isinstance(submodule, tnn.Linear) for submodule in module):
                 self._classifier_layers.append(module)
