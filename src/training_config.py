@@ -39,6 +39,7 @@ class TrainingConfig:
     donor: str
     transform: tt2.Transform
     classifier: Classifier
+    classifier_name: str
     batch_size: int
     epochs: int
     network: ClassificationNetwork
@@ -92,6 +93,7 @@ def load_config(file: Path) -> TrainingConfig:
         donor=model_p["name"],
         transform=internals.transform,
         classifier=classifier,
+        classifier_name=Path(model_p["classifier"]).stem,
         batch_size=macro_p["batch_size"],
         epochs=macro_p["epochs"],
         network=network,
