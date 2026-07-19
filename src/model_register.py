@@ -77,6 +77,14 @@ class _TorchvisionModel(Enum):
     CONVNEXT_SMALL = "convnext_small"
     CONVNEXT_BASE = "convnext_base"
     CONVNEXT_LARGE = "convnext_large"
+    EFFICIENTNET_B0 = "efficientnet_b0"
+    EFFICIENTNET_B1 = "efficientnet_b1"
+    EFFICIENTNET_B2 = "efficientnet_b2"
+    EFFICIENTNET_B3 = "efficientnet_b3"
+    EFFICIENTNET_B4 = "efficientnet_b4"
+    EFFICIENTNET_B5 = "efficientnet_b5"
+    EFFICIENTNET_B6 = "efficientnet_b6"
+    EFFICIENTNET_B7 = "efficientnet_b7"
 
 
 _MODEL_TRANSFORMATIONS = {
@@ -448,6 +456,62 @@ _MODEL_TRANSFORMATIONS = {
         [
             tt2.Resize(232),
             tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B0": tt2.Compose(
+        [
+            tt2.Resize(256, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B1": tt2.Compose(
+        [
+            tt2.Resize(256, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(240),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B2": tt2.Compose(
+        [
+            tt2.Resize(288, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(288),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B3": tt2.Compose(
+        [
+            tt2.Resize(320, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(300),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B4": tt2.Compose(
+        [
+            tt2.Resize(384, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(380),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B5": tt2.Compose(
+        [
+            tt2.Resize(456, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(456),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B6": tt2.Compose(
+        [
+            tt2.Resize(528, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(528),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "EFFICIENTNET_B7": tt2.Compose(
+        [
+            tt2.Resize(600),
+            tt2.CenterCrop(600),
             tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ]
     ),

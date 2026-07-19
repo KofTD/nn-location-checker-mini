@@ -11,6 +11,7 @@ from typing import NamedTuple, Never, overload
 import torch.nn as tnn
 from torchvision.models.convnext import CNBlock
 from torchvision.models.densenet import _DenseBlock, _DenseLayer, _Transition
+from torchvision.models.efficientnet import FusedMBConv, MBConv
 from torchvision.models.googlenet import BasicConv2d as GooglenetBasicConv2d
 from torchvision.models.googlenet import Inception
 from torchvision.models.inception import BasicConv2d as InceptionBasicConv2d
@@ -40,6 +41,7 @@ from torchvision.models.swin_transformer import (
     SwinTransformerBlockV2,
 )
 from torchvision.models.vision_transformer import Encoder
+from torchvision.ops import SqueezeExcitation
 from torchvision.ops.misc import Permute
 
 __all__ = ["TensorShape", "compute_conv", "compute_shape"]
@@ -82,7 +84,12 @@ def compute_shape(module: tnn.Conv2d, previous_shape: TensorShape) -> TensorShap
 
 @overload
 def compute_shape(
-    _module: tnn.ReLU | tnn.Dropout | tnn.BatchNorm2d | tnn.ReLU6 | tnn.Hardswish,
+    _module: tnn.ReLU
+    | tnn.Dropout
+    | tnn.BatchNorm2d
+    | tnn.ReLU6
+    | tnn.Hardswish
+    | tnn.SiLU,
     previous_shape: TensorShape,
 ) -> TensorShape: ...
 
@@ -227,7 +234,12 @@ def _(module: tnn.Conv2d, previous_shape: TensorShape) -> TensorShape:
 
 @compute_shape.register
 def _(
-    _module: tnn.ReLU | tnn.Dropout | tnn.BatchNorm2d | tnn.ReLU6 | tnn.Hardswish,
+    _module: tnn.ReLU
+    | tnn.Dropout
+    | tnn.BatchNorm2d
+    | tnn.ReLU6
+    | tnn.Hardswish
+    | tnn.SiLU,
     previous_shape: TensorShape,
 ) -> TensorShape:
     return previous_shape
@@ -597,4 +609,14 @@ def _(_: PatchMerging | PatchMergingV2, previous_shape: TensorShape) -> TensorSh
 
 @compute_shape.register
 def _(_: CNBlock, previous_shape: TensorShape) -> TensorShape:
+    return previous_shape
+
+
+@compute_shape.register
+def _(module: MBConv | FusedMBConv, previous_shape: TensorShape) -> TensorShape:
+    return compute_shape(module.block, previous_shape)
+
+
+@compute_shape.register
+def _(_: SqueezeExcitation, previous_shape: TensorShape) -> TensorShape:
     return previous_shape
