@@ -67,6 +67,12 @@ class _TorchvisionModel(Enum):
     VIT_L_16 = "vit_l_16"
     VIT_L_32 = "vit_l_32"
     VIT_H_14 = "vit_h_14"
+    SWIN_T = "swin_t"
+    SWIN_S = "swin_s"
+    SWIN_B = "swin_b"
+    SWIN_V2_T = "swin_v2_t"
+    SWIN_V2_S = "swin_v2_s"
+    SWIN_V2_B = "swin_v2_b"
 
 
 _MODEL_TRANSFORMATIONS = {
@@ -368,6 +374,48 @@ _MODEL_TRANSFORMATIONS = {
         [
             tt2.Resize(518, tt2.InterpolationMode.BICUBIC),
             tt2.CenterCrop(518),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "SWIN_T": tt2.Compose(
+        [
+            tt2.Resize(232, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "SWIN_S": tt2.Compose(
+        [
+            tt2.Resize(246, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "SWIN_B": tt2.Compose(
+        [
+            tt2.Resize(238, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "SWIN_V2_T": tt2.Compose(
+        [
+            tt2.Resize(260, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(256),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "SWIN_V2_S": tt2.Compose(
+        [
+            tt2.Resize(260, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(256),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "SWIN_V2_B": tt2.Compose(
+        [
+            tt2.Resize(272, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(256),
             tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ]
     ),

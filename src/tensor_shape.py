@@ -32,7 +32,14 @@ from torchvision.models.shufflenetv2 import (
     InvertedResidual as ShufflenetInvertedResidual,
 )
 from torchvision.models.squeezenet import Fire
+from torchvision.models.swin_transformer import (
+    PatchMerging,
+    PatchMergingV2,
+    SwinTransformerBlock,
+    SwinTransformerBlockV2,
+)
 from torchvision.models.vision_transformer import Encoder
+from torchvision.ops.misc import Permute
 
 __all__ = ["TensorShape", "compute_conv", "compute_shape"]
 
@@ -559,3 +566,29 @@ def _(module: InceptionE, previous_shape: TensorShape) -> TensorShape:
 @compute_shape.register
 def _(_: Encoder, previous_shape: TensorShape) -> TensorShape:
     return previous_shape
+
+
+@compute_shape.register
+def _(_: tnn.LayerNorm, previous_shape: TensorShape) -> TensorShape:
+    return previous_shape
+
+
+@compute_shape.register
+def _(_: Permute, previous_shape: TensorShape) -> TensorShape:
+    return previous_shape
+
+
+@compute_shape.register
+def _(
+    _: SwinTransformerBlock | SwinTransformerBlockV2, previous_shape: TensorShape
+) -> TensorShape:
+    return previous_shape
+
+
+@compute_shape.register
+def _(_: PatchMerging | PatchMergingV2, previous_shape: TensorShape) -> TensorShape:
+    return TensorShape(
+        previous_shape.height // 2,
+        previous_shape.width // 2,
+        previous_shape.channels * 2,
+    )
