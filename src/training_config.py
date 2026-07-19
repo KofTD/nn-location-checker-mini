@@ -71,7 +71,10 @@ def load_config(file: Path) -> TrainingConfig:
     segment_end = model_p["end"]
     logger.info("Cutting off segment of the model")
     segment = ModelSegment(
-        internals.modules, slice(segment_start, segment_end), model_p["name"]
+        internals.modules,
+        slice(segment_start, segment_end),
+        model_p["name"],
+        internals.class_token,
     )
     output_shape = segment.compute_shape(target_shape)
     logger.info("Loading classifier")

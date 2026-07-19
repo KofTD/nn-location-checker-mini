@@ -17,14 +17,50 @@ from torchvision.models.inception import InceptionAux
 from tensor_shape import TensorShape, compute_shape
 
 
+class ViTPatch(tnn.Module):
+    def __init__(self, conv_proj: tnn.Conv2d, class_token: tnn.Parameter) -> None:
+        super().__init__()
+        self.conv_proj = conv_proj
+        self.class_token = class_token
+
+    @override
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        n = x.shape[0]
+        x = self.conv_proj(x)
+        x = x.flatten(2).permute(0, 2, 1)
+        batch_class_token = self.class_token.expand(n, -1, -1)
+        return torch.cat([batch_class_token, x], dim=1)
+
+
+@compute_shape.register
+def _(module: ViTPatch, previous_shape: TensorShape) -> TensorShape:
+    patch_shape = compute_shape(module.conv_proj, previous_shape)
+    seq_length = patch_shape.height * patch_shape.width + 1
+    return TensorShape(1, seq_length, patch_shape.channels)
+
+
 class ModelSegment(tnn.Module):
     def __init__(
-        self, modules: list[tnn.Module], index: int | slice, donor: str
+        self,
+        modules: list[tnn.Module],
+        index: int | slice,
+        donor: str,
+        class_token: tnn.Parameter | None = None,
     ) -> None:
         super().__init__()
 
         as_slice = slice(index) if isinstance(index, int) else index
         selected_modules = modules[as_slice]
+
+        if donor.startswith("vit_"):
+            if class_token is None:
+                raise ValueError(f"class_token is required for '{donor}'")
+            selected_modules = [
+                ViTPatch(module, class_token)
+                if isinstance(module, tnn.Conv2d)
+                else module
+                for module in selected_modules
+            ]
 
         self._convolution_layers: tnn.Sequential = tnn.Sequential()
         self._classifier_layers: tnn.Sequential = tnn.Sequential()
@@ -91,6 +127,8 @@ class ModelSegment(tnn.Module):
                 return self._classifier_layers(x)
             elif self._donor == "mobilenet_v2":
                 x = torch.nn.functional.adaptive_avg_pool2d(x, (1, 1))
+            elif self._donor.startswith("vit_"):
+                x = x[:, 0]
             x = torch.flatten(x, 1)
             x = self._classifier_layers(x)
 

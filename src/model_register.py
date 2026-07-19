@@ -62,6 +62,11 @@ class _TorchvisionModel(Enum):
     MNASNET_0_75 = "mnasnet0_75"
     MNASNET_1_0 = "mnasnet1_0"
     MNASNET_1_3 = "mnasnet1_3"
+    VIT_B_16 = "vit_b_16"
+    VIT_B_32 = "vit_b_32"
+    VIT_L_16 = "vit_l_16"
+    VIT_L_32 = "vit_l_32"
+    VIT_H_14 = "vit_h_14"
 
 
 _MODEL_TRANSFORMATIONS = {
@@ -331,6 +336,41 @@ _MODEL_TRANSFORMATIONS = {
             tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ]
     ),
+    "VIT_B_16": tt2.Compose(
+        [
+            tt2.Resize(256),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "VIT_B_32": tt2.Compose(
+        [
+            tt2.Resize(256),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "VIT_L_16": tt2.Compose(
+        [
+            tt2.Resize(242),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "VIT_L_32": tt2.Compose(
+        [
+            tt2.Resize(256),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "VIT_H_14": tt2.Compose(
+        [
+            tt2.Resize(518, tt2.InterpolationMode.BICUBIC),
+            tt2.CenterCrop(518),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
 }
 
 
@@ -351,6 +391,7 @@ KnownModel = _TorchvisionModel | _OpenClipModel
 class ModelInternals:
     modules: list[tnn.Module]
     transform: tt2.Compose
+    class_token: tnn.Parameter | None = None
 
 
 def load_model_internals(model: KnownModel) -> ModelInternals:
@@ -362,6 +403,7 @@ def load_model_internals(model: KnownModel) -> ModelInternals:
             return ModelInternals(
                 modules=list(donor.children()),
                 transform=_MODEL_TRANSFORMATIONS[model.name.upper()],
+                class_token=donor.class_token if name.startswith("vit_") else None,
             )
         case _OpenClipModel():
             spec = model.value

@@ -32,6 +32,7 @@ from torchvision.models.shufflenetv2 import (
     InvertedResidual as ShufflenetInvertedResidual,
 )
 from torchvision.models.squeezenet import Fire
+from torchvision.models.vision_transformer import Encoder
 
 __all__ = ["TensorShape", "compute_conv", "compute_shape"]
 
@@ -175,7 +176,11 @@ def compute_shape(module: InceptionE, previous_shape: TensorShape) -> TensorShap
 
 
 @overload
-def compute_shape(module: tnn.Module, previous_shape: TensorShape) -> Never: ...
+def compute_shape(module: Encoder, previous_shape: TensorShape) -> TensorShape: ...
+
+
+@overload
+def compute_shape(module: tnn.Module, previous_shape: TensorShape) -> TensorShape: ...
 
 
 def compute_conv(
@@ -549,3 +554,8 @@ def _(module: InceptionE, previous_shape: TensorShape) -> TensorShape:
         + b3b.channels
         + b4.channels,
     )
+
+
+@compute_shape.register
+def _(_: Encoder, previous_shape: TensorShape) -> TensorShape:
+    return previous_shape
