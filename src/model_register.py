@@ -73,6 +73,10 @@ class _TorchvisionModel(Enum):
     SWIN_V2_T = "swin_v2_t"
     SWIN_V2_S = "swin_v2_s"
     SWIN_V2_B = "swin_v2_b"
+    CONVNEXT_TINY = "convnext_tiny"
+    CONVNEXT_SMALL = "convnext_small"
+    CONVNEXT_BASE = "convnext_base"
+    CONVNEXT_LARGE = "convnext_large"
 
 
 _MODEL_TRANSFORMATIONS = {
@@ -416,6 +420,34 @@ _MODEL_TRANSFORMATIONS = {
         [
             tt2.Resize(272, tt2.InterpolationMode.BICUBIC),
             tt2.CenterCrop(256),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "CONVNEXT_TINY": tt2.Compose(
+        [
+            tt2.Resize(236),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "CONVNEXT_SMALL": tt2.Compose(
+        [
+            tt2.Resize(230),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "CONVNEXT_BASE": tt2.Compose(
+        [
+            tt2.Resize(232),
+            tt2.CenterCrop(224),
+            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ]
+    ),
+    "CONVNEXT_LARGE": tt2.Compose(
+        [
+            tt2.Resize(232),
+            tt2.CenterCrop(224),
             tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ]
     ),

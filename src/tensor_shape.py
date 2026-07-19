@@ -9,6 +9,7 @@ from functools import singledispatch
 from typing import NamedTuple, Never, overload
 
 import torch.nn as tnn
+from torchvision.models.convnext import CNBlock
 from torchvision.models.densenet import _DenseBlock, _DenseLayer, _Transition
 from torchvision.models.googlenet import BasicConv2d as GooglenetBasicConv2d
 from torchvision.models.googlenet import Inception
@@ -592,3 +593,8 @@ def _(_: PatchMerging | PatchMergingV2, previous_shape: TensorShape) -> TensorSh
         previous_shape.width // 2,
         previous_shape.channels * 2,
     )
+
+
+@compute_shape.register
+def _(_: CNBlock, previous_shape: TensorShape) -> TensorShape:
+    return previous_shape

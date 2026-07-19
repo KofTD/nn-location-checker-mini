@@ -129,6 +129,8 @@ class ModelSegment(tnn.Module):
                 x = torch.nn.functional.adaptive_avg_pool2d(x, (1, 1))
             elif self._donor.startswith("vit_"):
                 x = x[:, 0]
+            elif self._donor.startswith("convnext"):
+                return self._classifier_layers(x)
             x = torch.flatten(x, 1)
             x = self._classifier_layers(x)
 
