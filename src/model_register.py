@@ -13,6 +13,7 @@ import open_clip
 import torch.nn as tnn
 import torchvision.models as tvm
 import torchvision.transforms.v2 as tt2
+from torchvision.transforms.v2 import InterpolationMode
 
 __all__ = [
     "ALL_MODELS",
@@ -87,433 +88,120 @@ class _TorchvisionModel(Enum):
     EFFICIENTNET_B7 = "efficientnet_b7"
 
 
+class Transform:
+    def __init__(
+        self,
+        crop_size: int = 224,
+        resize_size: int = 256,
+        mean: tuple[float, float, float] = (0.485, 0.456, 0.406),
+        std: tuple[float, float, float] = (0.229, 0.224, 0.225),
+        interpolation: tt2.InterpolationMode = tt2.InterpolationMode.BILINEAR,
+        antialiasing: bool | None = True,
+    ) -> None:
+        self.crop_size = crop_size
+        self.resize_size = resize_size
+        self.mean = mean
+        self.std = std
+        self.interpolation = interpolation
+        self.antialiasing = antialiasing
+
+    def build(self) -> tt2.Compose:
+        return tt2.Compose(
+            [
+                tt2.Resize(
+                    (self.resize_size, self.resize_size),
+                    self.interpolation,
+                    antialias=self.antialiasing,
+                ),
+                tt2.CenterCrop(self.crop_size),
+                tt2.Normalize(mean=self.mean, std=self.std),
+            ]
+        )
+
+
 _MODEL_TRANSFORMATIONS = {
-    "ALEXNET": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "ALEXNET": Transform(),
+    "VGG_11": Transform(),
+    "VGG_13": Transform(),
+    "VGG_16": Transform(),
+    "VGG_19": Transform(),
+    "VGG_11_BN": Transform(),
+    "VGG_13_BN": Transform(),
+    "VGG_16_BN": Transform(),
+    "VGG_19_BN": Transform(),
+    "RESNET_18": Transform(),
+    "RESNET_34": Transform(),
+    "RESNET_50": Transform(),
+    "RESNET_101": Transform(),
+    "RESNET_152": Transform(),
+    "SQUEEZENET_1_0": Transform(),
+    "SQUEEZENET_1_1": Transform(),
+    "DENSENET_121": Transform(),
+    "DENSENET_161": Transform(),
+    "DENSENET_169": Transform(),
+    "DENSENET_201": Transform(),
+    "INCEPTION_V3": Transform(crop_size=299, resize_size=342),
+    "GOOGLENET": Transform(),
+    "SHUFFLENET_V2_0_5": Transform(),
+    "SHUFFLENET_V2_1_0": Transform(),
+    "SHUFFLENET_V2_1_5": Transform(),
+    "SHUFFLENET_V2_2_0": Transform(),
+    "MOBILENET_V2": Transform(),
+    "MOBILENET_V3_L": Transform(),
+    "MOBILENET_V3_S": Transform(),
+    "RESNEXT_50": Transform(),
+    "RESNEXT_101_32": Transform(),
+    "RESNEXT_101_64": Transform(crop_size=224, resize_size=232),
+    "WIDERESNET_50_2": Transform(),
+    "WIDERESNET_101_2": Transform(),
+    "MNASNET_0_5": Transform(),
+    "MNASNET_0_75": Transform(),
+    "MNASNET_1_0": Transform(),
+    "MNASNET_1_3": Transform(resize_size=232),
+    "VIT_B_16": Transform(),
+    "VIT_B_32": Transform(),
+    "VIT_L_16": Transform(resize_size=242),
+    "VIT_L_32": Transform(),
+    "VIT_H_14": Transform(
+        resize_size=518, crop_size=518, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_11": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "SWIN_T": Transform(resize_size=232, interpolation=InterpolationMode.BICUBIC),
+    "SWIN_S": Transform(resize_size=246, interpolation=InterpolationMode.BICUBIC),
+    "SWIN_B": Transform(resize_size=238, interpolation=InterpolationMode.BICUBIC),
+    "SWIN_V2_T": Transform(
+        crop_size=256, resize_size=260, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_13": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "SWIN_V2_S": Transform(
+        crop_size=256, resize_size=260, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_16": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "SWIN_V2_B": Transform(
+        crop_size=256, resize_size=272, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_19": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "CONVNEXT_TINY": Transform(resize_size=236),
+    "CONVNEXT_SMALL": Transform(resize_size=230),
+    "CONVNEXT_BASE": Transform(resize_size=232),
+    "CONVNEXT_LARGE": Transform(resize_size=232),
+    "EFFICIENTNET_B0": Transform(interpolation=InterpolationMode.BICUBIC),
+    "EFFICIENTNET_B1": Transform(
+        crop_size=240, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_11_BN": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "EFFICIENTNET_B2": Transform(
+        resize_size=288, crop_size=288, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_13_BN": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "EFFICIENTNET_B3": Transform(
+        resize_size=320, crop_size=300, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_16_BN": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "EFFICIENTNET_B4": Transform(
+        resize_size=384, crop_size=380, interpolation=InterpolationMode.BICUBIC
     ),
-    "VGG_19_BN": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "EFFICIENTNET_B5": Transform(
+        resize_size=456, crop_size=456, interpolation=InterpolationMode.BICUBIC
     ),
-    "RESNET_18": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "EFFICIENTNET_B6": Transform(
+        resize_size=528, crop_size=528, interpolation=InterpolationMode.BICUBIC
     ),
-    "RESNET_34": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "RESNET_50": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "RESNET_101": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "RESNET_152": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SQUEEZENET_1_0": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SQUEEZENET_1_1": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "DENSENET_121": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "DENSENET_161": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "DENSENET_169": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "DENSENET_201": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "INCEPTION_V3": tt2.Compose(
-        [
-            tt2.Resize((342, 342)),
-            tt2.CenterCrop(299),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "GOOGLENET": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SHUFFLENET_V2_0_5": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SHUFFLENET_V2_1_0": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SHUFFLENET_V2_1_5": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SHUFFLENET_V2_2_0": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MOBILENET_V2": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MOBILENET_V3_L": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MOBILENET_V3_S": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "RESNEXT_50": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "RESNEXT_101_32": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "RESNEXT_101_64": tt2.Compose(
-        [
-            tt2.Resize((232, 232)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "WIDERESNET_50_2": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "WIDERESNET_101_2": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MNASNET_0_5": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MNASNET_0_75": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MNASNET_1_0": tt2.Compose(
-        [
-            tt2.Resize((256, 256)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "MNASNET_1_3": tt2.Compose(
-        [
-            tt2.Resize((232, 232)),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "VIT_B_16": tt2.Compose(
-        [
-            tt2.Resize(256),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "VIT_B_32": tt2.Compose(
-        [
-            tt2.Resize(256),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "VIT_L_16": tt2.Compose(
-        [
-            tt2.Resize(242),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "VIT_L_32": tt2.Compose(
-        [
-            tt2.Resize(256),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "VIT_H_14": tt2.Compose(
-        [
-            tt2.Resize(518, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(518),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SWIN_T": tt2.Compose(
-        [
-            tt2.Resize(232, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SWIN_S": tt2.Compose(
-        [
-            tt2.Resize(246, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SWIN_B": tt2.Compose(
-        [
-            tt2.Resize(238, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SWIN_V2_T": tt2.Compose(
-        [
-            tt2.Resize(260, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(256),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SWIN_V2_S": tt2.Compose(
-        [
-            tt2.Resize(260, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(256),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "SWIN_V2_B": tt2.Compose(
-        [
-            tt2.Resize(272, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(256),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "CONVNEXT_TINY": tt2.Compose(
-        [
-            tt2.Resize(236),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "CONVNEXT_SMALL": tt2.Compose(
-        [
-            tt2.Resize(230),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "CONVNEXT_BASE": tt2.Compose(
-        [
-            tt2.Resize(232),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "CONVNEXT_LARGE": tt2.Compose(
-        [
-            tt2.Resize(232),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B0": tt2.Compose(
-        [
-            tt2.Resize(256, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(224),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B1": tt2.Compose(
-        [
-            tt2.Resize(256, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(240),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B2": tt2.Compose(
-        [
-            tt2.Resize(288, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(288),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B3": tt2.Compose(
-        [
-            tt2.Resize(320, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(300),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B4": tt2.Compose(
-        [
-            tt2.Resize(384, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(380),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B5": tt2.Compose(
-        [
-            tt2.Resize(456, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(456),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B6": tt2.Compose(
-        [
-            tt2.Resize(528, tt2.InterpolationMode.BICUBIC),
-            tt2.CenterCrop(528),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
-    ),
-    "EFFICIENTNET_B7": tt2.Compose(
-        [
-            tt2.Resize(600),
-            tt2.CenterCrop(600),
-            tt2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-        ]
+    "EFFICIENTNET_B7": Transform(
+        resize_size=600, crop_size=600, interpolation=InterpolationMode.BICUBIC
     ),
 }
 
@@ -546,7 +234,7 @@ def load_model_internals(model: KnownModel) -> ModelInternals:
             donor = getattr(tvm, name)(weights=weights)
             return ModelInternals(
                 modules=list(donor.children()),
-                transform=_MODEL_TRANSFORMATIONS[model.name.upper()],
+                transform=_MODEL_TRANSFORMATIONS[model.name.upper()].build(),
                 class_token=donor.class_token if name.startswith("vit_") else None,
             )
         case _OpenClipModel():
