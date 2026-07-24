@@ -1,0 +1,31 @@
+from . import (
+    convnext,
+    densenet,
+    efficientnet,
+    googlenet,
+    inception,
+    mnasnet,
+    mobilenetv2,
+    mobilenetv3,
+    resnet,
+    shufflenet2,
+    squeezenet,
+    swin,
+    vit,
+)
+
+__all__ = [
+    "convnext",
+    "densenet",
+    "efficientnet",
+    "googlenet",
+    "inception",
+    "mnasnet",
+    "mobilenetv2",
+    "mobilenetv3",
+    "resnet",
+    "shufflenet2",
+    "squeezenet",
+    "swin",
+    "vit",
+]
