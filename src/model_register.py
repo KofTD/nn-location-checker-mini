@@ -86,6 +86,21 @@ class _TorchvisionModel(Enum):
     EFFICIENTNET_B5 = "efficientnet_b5"
     EFFICIENTNET_B6 = "efficientnet_b6"
     EFFICIENTNET_B7 = "efficientnet_b7"
+    REGNET_Y_400MF = "regnet_y_400mf"
+    REGNET_Y_800MF = "regnet_y_800mf"
+    REGNET_Y_1_6GF = "regnet_y_1_6gf"
+    REGNET_Y_3_2GF = "regnet_y_3_2gf"
+    REGNET_Y_8GF = "regnet_y_8gf"
+    REGNET_Y_16GF = "regnet_y_16gf"
+    REGNET_Y_32GF = "regnet_y_32gf"
+    REGNET_Y_128GF = "regnet_y_128gf"
+    REGNET_X_400MF = "regnet_x_400mf"
+    REGNET_X_800MF = "regnet_x_800mf"
+    REGNET_X_1_6GF = "regnet_x_1_6gf"
+    REGNET_X_3_2GF = "regnet_x_3_2gf"
+    REGNET_X_8GF = "regnet_x_8gf"
+    REGNET_X_16GF = "regnet_x_16gf"
+    REGNET_X_32GF = "regnet_x_32gf"
 
 
 class Transform:
@@ -203,6 +218,21 @@ _MODEL_TRANSFORMATIONS = {
     "EFFICIENTNET_B7": Transform(
         resize_size=600, crop_size=600, interpolation=InterpolationMode.BICUBIC
     ),
+    "REGNET_Y_400MF": Transform(crop_size=224),
+    "REGNET_Y_800MF": Transform(crop_size=224),
+    "REGNET_Y_1_6GF": Transform(crop_size=224),
+    "REGNET_Y_3_2GF": Transform(crop_size=224),
+    "REGNET_Y_8GF": Transform(crop_size=224),
+    "REGNET_Y_16GF": Transform(crop_size=224),
+    "REGNET_Y_32GF": Transform(crop_size=224),
+    "REGNET_Y_128GF": Transform(crop_size=384, resize_size=384),
+    "REGNET_X_400MF": Transform(crop_size=224),
+    "REGNET_X_800MF": Transform(crop_size=224),
+    "REGNET_X_1_6GF": Transform(crop_size=224),
+    "REGNET_X_3_2GF": Transform(crop_size=224),
+    "REGNET_X_8GF": Transform(crop_size=224),
+    "REGNET_X_16GF": Transform(crop_size=224),
+    "REGNET_X_32GF": Transform(crop_size=224),
 }
 
 
