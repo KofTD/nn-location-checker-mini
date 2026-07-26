@@ -57,7 +57,8 @@ def compute_shape(
     | tnn.BatchNorm2d
     | tnn.ReLU6
     | tnn.Hardswish
-    | tnn.SiLU,
+    | tnn.SiLU
+    | tnn.GELU,
     previous_shape: TensorShape,
 ) -> TensorShape: ...
 
@@ -76,7 +77,7 @@ def compute_shape(
 
 @overload
 def compute_shape(
-    module: tnn.Sequential, previous_shape: TensorShape
+    module: tnn.Sequential | tnn.ModuleList, previous_shape: TensorShape
 ) -> TensorShape: ...
 
 
@@ -131,7 +132,8 @@ def _(
     | tnn.BatchNorm2d
     | tnn.ReLU6
     | tnn.Hardswish
-    | tnn.SiLU,
+    | tnn.SiLU
+    | tnn.GELU,
     previous_shape: TensorShape,
 ) -> TensorShape:
     return previous_shape
@@ -220,7 +222,7 @@ def _(
 
 @compute_shape.register
 def _(
-    module: tnn.Sequential,
+    module: tnn.Sequential | tnn.ModuleList,
     previous_shape: TensorShape,
 ) -> TensorShape:
     result_shape = previous_shape

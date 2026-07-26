@@ -101,6 +101,7 @@ class _TorchvisionModel(Enum):
     REGNET_X_8GF = "regnet_x_8gf"
     REGNET_X_16GF = "regnet_x_16gf"
     REGNET_X_32GF = "regnet_x_32gf"
+    MAXVIT_T = "maxvit_t"
 
 
 class Transform:
@@ -233,6 +234,9 @@ _MODEL_TRANSFORMATIONS = {
     "REGNET_X_8GF": Transform(crop_size=224),
     "REGNET_X_16GF": Transform(crop_size=224),
     "REGNET_X_32GF": Transform(crop_size=224),
+    "MAXVIT_T": Transform(
+        crop_size=224, resize_size=224, interpolation=InterpolationMode.BICUBIC
+    ),
 }
 
 

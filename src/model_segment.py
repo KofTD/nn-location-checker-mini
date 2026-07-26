@@ -77,7 +77,9 @@ class ModelSegment(tnn.Module):
     def append(self, module: tnn.Module) -> None:
         if isinstance(module, (InceptionAux, GoogLeNetAux)):
             return
-        if isinstance(module, tnn.Sequential):
+        if isinstance(module, tnn.ModuleList):
+            self.extend(module)
+        elif isinstance(module, tnn.Sequential):
             if any(isinstance(submodule, tnn.Linear) for submodule in module):
                 self._classifier_layers.append(module)
             else:
