@@ -10,6 +10,7 @@ from enum import Enum
 from typing import NamedTuple
 
 import open_clip
+import timm
 import torch.nn as tnn
 import torchvision.models as tvm
 import torchvision.transforms.v2 as tt2
@@ -235,6 +236,16 @@ _MODEL_TRANSFORMATIONS = {
     "REGNET_X_16GF": Transform(),
     "REGNET_X_32GF": Transform(),
     "MAXVIT_T": Transform(resize_size=224, interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_A0": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_A1": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_A2": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B0": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B1": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B1G4": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B2": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B2G4": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B3": Transform(interpolation=InterpolationMode.BICUBIC),
+    "REPVGG_B3G4": Transform(interpolation=InterpolationMode.BICUBIC),
 }
 
 
@@ -248,7 +259,20 @@ class _OpenClipModel(Enum):
     MOBILECLIP_B = _OpenClipSpec("MobileCLIP-B", "datacompdr")
 
 
-KnownModel = _TorchvisionModel | _OpenClipModel
+class _TimmModel(Enum):
+    REPVGG_A0 = "repvgg_a0"
+    REPVGG_A1 = "repvgg_a1"
+    REPVGG_A2 = "repvgg_a2"
+    REPVGG_B0 = "repvgg_b0"
+    REPVGG_B1 = "repvgg_b1"
+    REPVGG_B1G4 = "repvgg_b1g4"
+    REPVGG_B2 = "repvgg_b2"
+    REPVGG_B2G4 = "repvgg_b2g4"
+    REPVGG_B3 = "repvgg_b3"
+    REPVGG_B3G4 = "repvgg_b3g4"
+
+
+KnownModel = _TorchvisionModel | _OpenClipModel | _TimmModel
 
 
 @dataclass(frozen=True)
@@ -278,12 +302,21 @@ def load_model_internals(model: KnownModel) -> ModelInternals:
                 modules=list(clip_model.visual.children())[:1],
                 transform=preprocess,
             )
+        case _TimmModel():
+            name = model.value
+            donor = timm.create_model(name, pretrained=True)
+            return ModelInternals(
+                modules=list(donor.children()),
+                transform=_MODEL_TRANSFORMATIONS[model.name.upper()].build(),
+            )
         case _:
             raise NotImplementedError(f"Unkown model: {model!r}")
 
 
 ALL_MODELS: dict[str, KnownModel] = {
-    model.name: model for cls in (_TorchvisionModel, _OpenClipModel) for model in cls
+    model.name: model
+    for cls in (_TorchvisionModel, _OpenClipModel, _TimmModel)
+    for model in cls
 }
 
 
