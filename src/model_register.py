@@ -252,6 +252,21 @@ _MODEL_TRANSFORMATIONS = {
     "MIXER_B16_224": Transform(),
     "MIXER_L32_224": Transform(),
     "MIXER_L16_224": Transform(),
+    "POOLFORMER_S12": Transform(
+        resize_size=248, interpolation=InterpolationMode.BICUBIC
+    ),
+    "POOLFORMER_S24": Transform(
+        resize_size=248, interpolation=InterpolationMode.BICUBIC
+    ),
+    "POOLFORMER_S36": Transform(
+        resize_size=248, interpolation=InterpolationMode.BICUBIC
+    ),
+    "POOLFORMER_M36": Transform(
+        resize_size=236, interpolation=InterpolationMode.BICUBIC
+    ),
+    "POOLFORMER_M48": Transform(
+        resize_size=236, interpolation=InterpolationMode.BICUBIC
+    ),
 }
 
 
@@ -282,6 +297,11 @@ class _TimmModel(Enum):
     MIXER_B16_224 = "mixer_b16_224"
     MIXER_L32_224 = "mixer_l32_224"
     MIXER_L16_224 = "mixer_l16_224"
+    POOLFORMER_S12 = "poolformer_s12"
+    POOLFORMER_S24 = "poolformer_s24"
+    POOLFORMER_S36 = "poolformer_s36"
+    POOLFORMER_M36 = "poolformer_m36"
+    POOLFORMER_M48 = "poolformer_m48"
 
 
 KnownModel = _TorchvisionModel | _OpenClipModel | _TimmModel
