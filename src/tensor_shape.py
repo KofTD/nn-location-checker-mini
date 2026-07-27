@@ -133,7 +133,8 @@ def _(
     | tnn.ReLU6
     | tnn.Hardswish
     | tnn.SiLU
-    | tnn.GELU,
+    | tnn.GELU
+    | tnn.Identity,
     previous_shape: TensorShape,
 ) -> TensorShape:
     return previous_shape

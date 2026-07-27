@@ -246,6 +246,12 @@ _MODEL_TRANSFORMATIONS = {
     "REPVGG_B2G4": Transform(interpolation=InterpolationMode.BICUBIC),
     "REPVGG_B3": Transform(interpolation=InterpolationMode.BICUBIC),
     "REPVGG_B3G4": Transform(interpolation=InterpolationMode.BICUBIC),
+    "MIXER_S32_224": Transform(),
+    "MIXER_S16_224": Transform(),
+    "MIXER_B32_224": Transform(),
+    "MIXER_B16_224": Transform(),
+    "MIXER_L32_224": Transform(),
+    "MIXER_L16_224": Transform(),
 }
 
 
@@ -270,6 +276,12 @@ class _TimmModel(Enum):
     REPVGG_B2G4 = "repvgg_b2g4"
     REPVGG_B3 = "repvgg_b3"
     REPVGG_B3G4 = "repvgg_b3g4"
+    MIXER_S32_224 = "mixer_s32_224"
+    MIXER_S16_224 = "mixer_s16_224"
+    MIXER_B32_224 = "mixer_b32_224"
+    MIXER_B16_224 = "mixer_b16_224"
+    MIXER_L32_224 = "mixer_l32_224"
+    MIXER_L16_224 = "mixer_l16_224"
 
 
 KnownModel = _TorchvisionModel | _OpenClipModel | _TimmModel
@@ -304,7 +316,12 @@ def load_model_internals(model: KnownModel) -> ModelInternals:
             )
         case _TimmModel():
             name = model.value
-            donor = timm.create_model(name, pretrained=True)
+            try:
+                donor = timm.create_model(name, pretrained=True)
+            except RuntimeError as err:
+                if not str(err).startswith("No pretrained weights exist"):
+                    raise
+                donor = timm.create_model(name)
             return ModelInternals(
                 modules=list(donor.children()),
                 transform=_MODEL_TRANSFORMATIONS[model.name.upper()].build(),
