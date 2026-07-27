@@ -219,24 +219,22 @@ _MODEL_TRANSFORMATIONS = {
     "EFFICIENTNET_B7": Transform(
         resize_size=600, crop_size=600, interpolation=InterpolationMode.BICUBIC
     ),
-    "REGNET_Y_400MF": Transform(crop_size=224),
-    "REGNET_Y_800MF": Transform(crop_size=224),
-    "REGNET_Y_1_6GF": Transform(crop_size=224),
-    "REGNET_Y_3_2GF": Transform(crop_size=224),
-    "REGNET_Y_8GF": Transform(crop_size=224),
-    "REGNET_Y_16GF": Transform(crop_size=224),
-    "REGNET_Y_32GF": Transform(crop_size=224),
+    "REGNET_Y_400MF": Transform(),
+    "REGNET_Y_800MF": Transform(),
+    "REGNET_Y_1_6GF": Transform(),
+    "REGNET_Y_3_2GF": Transform(),
+    "REGNET_Y_8GF": Transform(),
+    "REGNET_Y_16GF": Transform(),
+    "REGNET_Y_32GF": Transform(),
     "REGNET_Y_128GF": Transform(crop_size=384, resize_size=384),
-    "REGNET_X_400MF": Transform(crop_size=224),
-    "REGNET_X_800MF": Transform(crop_size=224),
-    "REGNET_X_1_6GF": Transform(crop_size=224),
-    "REGNET_X_3_2GF": Transform(crop_size=224),
-    "REGNET_X_8GF": Transform(crop_size=224),
-    "REGNET_X_16GF": Transform(crop_size=224),
-    "REGNET_X_32GF": Transform(crop_size=224),
-    "MAXVIT_T": Transform(
-        crop_size=224, resize_size=224, interpolation=InterpolationMode.BICUBIC
-    ),
+    "REGNET_X_400MF": Transform(),
+    "REGNET_X_800MF": Transform(),
+    "REGNET_X_1_6GF": Transform(),
+    "REGNET_X_3_2GF": Transform(),
+    "REGNET_X_8GF": Transform(),
+    "REGNET_X_16GF": Transform(),
+    "REGNET_X_32GF": Transform(),
+    "MAXVIT_T": Transform(resize_size=224, interpolation=InterpolationMode.BICUBIC),
 }
 
 
