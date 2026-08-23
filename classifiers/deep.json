@@ -1,0 +1,45 @@
+[
+  {
+    "type": "dropout",
+    "percent": 0.5
+  },
+  {
+    "type": "linear",
+    "out": 4096
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "dropout",
+    "percent": 0.5
+  },
+  {
+    "type": "linear",
+    "out": 2048
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "dropout",
+    "percent": 0.3
+  },
+  {
+    "type": "linear",
+    "out": 512
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "linear",
+    "out": 29
+  }
+]

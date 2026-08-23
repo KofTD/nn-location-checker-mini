@@ -1,0 +1,11 @@
+[
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "linear",
+    "out": 29
+  }
+]

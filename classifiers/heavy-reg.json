@@ -1,0 +1,23 @@
+[
+  {
+    "type": "dropout",
+    "percent": 0.6
+  },
+  {
+    "type": "linear",
+    "out": 1024
+  },
+  {
+    "type": "activation",
+    "function": "relu",
+    "inplace": true
+  },
+  {
+    "type": "dropout",
+    "percent": 0.6
+  },
+  {
+    "type": "linear",
+    "out": 29
+  }
+]
